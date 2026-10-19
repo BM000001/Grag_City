@@ -1,0 +1,894 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+/* 1. Configurações gerais */
+:root {
+    --ink: #213c32;
+    --muted: #708078;
+    --green: #32865e;
+    --line: #e3eae1;
+    --surface: #fffefa;
+    --background: #edf3ec;
+    --selected: #eff8f0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--background);
+    color: var(--ink);
+    font-family: Nunito, Arial, sans-serif;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #e6b84e;
+    outline-offset: 3px;
+}
+
+/* Estrutura */
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    display: flex;
+    flex: 0 0 285px;
+    flex-direction: column;
+    width: 285px;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    z-index: 30;
+}
+
+.side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 76px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+}
+
+.brand {
+    color: var(--ink);
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: .5px;
+    text-decoration: none;
+}
+
+.brand b {
+    color: var(--green);
+}
+
+.side-content {
+    flex: 1;
+    padding: 24px 16px;
+}
+
+.kicker {
+    margin: 0 0 5px;
+    color: var(--green);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+}
+
+.sidebar h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.intro {
+    margin: 9px 0 22px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.catalog-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.catalog-title small,
+.piece small {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.catalog-title small {
+    font-weight: 600;
+}
+
+.catalog {
+    display: grid;
+    gap: 8px;
+}
+
+.piece {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 62px;
+    padding: 9px;
+    background: white;
+    border: 1px solid #e7ece4;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.piece:hover,
+.piece.selected {
+    background: var(--selected);
+    border-color: var(--green);
+}
+
+.piece.selected {
+    box-shadow: inset 3px 0 var(--green);
+}
+
+.piece > span:nth-child(2) {
+    display: grid;
+    flex: 1;
+    gap: 3px;
+}
+
+.piece b {
+    font-size: 12px;
+}
+
+.grip {
+    color: #9eaaa1;
+    font-size: 20px;
+}
+
+.art {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 43px;
+    height: 42px;
+    border-radius: 7px;
+    font-size: 27px;
+    font-weight: 900;
+    image-rendering: pixelated;
+}
+
+.house {
+    color: #c85e4d;
+    background: #f8e8bc;
+}
+
+.apartment {
+    color: #5688ab;
+    background: #d9eaf5;
+}
+
+.shop {
+    color: #bc6a4f;
+    background: #f8e4c2;
+}
+
+.tree,
+.park {
+    color: #398657;
+    background: #d9efcf;
+}
+
+.park {
+    background: #d7efcf;
+}
+
+.road {
+    color: #758781;
+    background: #e5ebe6;
+}
+
+.tip {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+    padding: 11px;
+    color: #b68b35;
+    background: #f1f7eb;
+    border-radius: 9px;
+    font-size: 12px;
+}
+
+.tip span {
+    color: #55705e;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.side-foot {
+    padding: 17px 20px;
+    color: #819087;
+    border-top: 1px solid var(--line);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .7px;
+}
+
+
+
+/* 2. Área principal */
+.workspace {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    min-height: 76px;
+    padding: 0 25px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+}
+
+.toolbar-left,
+.actions {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-left {
+    gap: 11px;
+}
+
+.toolbar h2 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.actions {
+    gap: 7px;
+}
+
+.actions > span {
+    margin-right: 7px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.tool {
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.primary {
+    color: white;
+    background: var(--green);
+}
+
+.primary:hover {
+    background: #236847;
+}
+
+.secondary {
+    color: #53675b;
+    background: white;
+    border-color: #dfe7dd;
+}
+
+/* 3. Mapa */
+.game {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 22px 25px 16px;
+}
+
+.map-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: #77867b;
+    font-size: 9px;
+    letter-spacing: .6px;
+}
+
+.map-heading span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.viewport {
+    position: relative;
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 440px;
+    overflow: hidden;
+    background-color: #e7f1e3;
+    background-image: radial-gradient(#cbdcc6 1px, transparent 1px);
+    background-size: 18px 18px;
+    border: 1px solid #dce8d9;
+    border-radius: 14px;
+}
+
+.island,
+.island-shadow {
+    position: absolute;
+    width: min(68%, 690px);
+    aspect-ratio: 1 / .67;
+    transform: rotate(30deg) skewX(-30deg) scale(.86);
+    border-radius: 10px;
+}
+
+.island-shadow {
+    top: calc(50% - min(68%, 690px) * .335 + 15px);
+    background: #a8c6a0;
+    box-shadow: 0 15px 0 #95b58e;
+}
+
+.island {
+    overflow: hidden;
+    background: #a5d393;
+    border: 3px solid #f5f2d9;
+    box-shadow: 0 0 0 2px #8dbd80;
+}
+
+.tiles {
+    position: absolute;
+    display: grid;
+    inset: 0;
+    grid-template: repeat(8, 1fr) / repeat(12, 1fr);
+}
+
+.tile {
+    min-width: 0;
+    min-height: 0;
+    background: #a5d393;
+    border-right: 1px solid #8bc27d;
+    border-bottom: 1px solid #8bc27d;
+    cursor: crosshair;
+}
+
+.tile:nth-child(odd) {
+    background: #a0cf8e;
+}
+
+.tile:hover,
+.tile.drop-target {
+    background: #d4efb8;
+    outline: 2px solid #f5f2d9;
+    outline-offset: -3px;
+}
+
+.tile.occupied {
+    background: #9bca89;
+}
+
+
+
+/* 4. Construções no mapa */
+.buildings {
+    position: absolute;
+    pointer-events: none;
+    inset: 0;
+}
+
+.placed {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 8.3333%;
+    height: 12.5%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: grab;
+    z-index: 5;
+}
+
+.placed:active {
+    cursor: grabbing;
+}
+
+.sprite {
+    position: relative;
+    width: 92%;
+    height: 92%;
+    filter: drop-shadow(2px 3px 0 #6b9860);
+    image-rendering: pixelated;
+}
+
+.sprite i,
+.sprite b,
+.sprite em {
+    position: absolute;
+    display: block;
+    font-style: normal;
+}
+
+.sprite i {
+    bottom: 7%;
+    left: 12%;
+    width: 76%;
+    height: 42%;
+    background: #c6b78a;
+    border: 2px solid #f4eac6;
+}
+
+.sprite b {
+    bottom: 44%;
+    left: 3%;
+    width: 94%;
+    height: 36%;
+    background: #d56c55;
+    clip-path: polygon(
+        50% 0,
+        100% 55%,
+        88% 100%,
+        12% 100%,
+        0 55%
+    );
+}
+
+.sprite em {
+    z-index: 2;
+    bottom: 22%;
+    left: 24%;
+    width: 15%;
+    height: 17%;
+    background: #8bd2e2;
+    border: 1px solid #fff2cc;
+    box-shadow: 18px 0 #8bd2e2;
+}
+
+/* Casa */
+.sprite.house::after {
+    position: absolute;
+    z-index: 2;
+    bottom: 7%;
+    left: 43%;
+    width: 15%;
+    height: 28%;
+    content: '';
+    background: #916143;
+    border: 1px solid #fff2cc;
+}
+
+/* Apartamento */
+.sprite.apartment i {
+    left: 18%;
+    width: 64%;
+    height: 69%;
+    background: #80add0;
+}
+
+.sprite.apartment b {
+    bottom: 73%;
+    left: 18%;
+    width: 64%;
+    height: 13%;
+    background: #5b819e;
+    clip-path: none;
+}
+
+.sprite.apartment em {
+    bottom: 48%;
+    left: 29%;
+    width: 12%;
+    height: 10%;
+    background: #fff0b3;
+    box-shadow:
+        17px 0 #fff0b3,
+        0 13px #fff0b3,
+        17px 13px #fff0b3,
+        0 26px #fff0b3,
+        17px 26px #fff0b3;
+}
+
+/* Loja */
+.sprite.shop i {
+    background: #f0cb83;
+}
+
+.sprite.shop b {
+    bottom: 65%;
+    height: 18%;
+    background: repeating-linear-gradient(
+        90deg,
+        #d56c55 0 8px,
+        #fff0cc 8px 16px
+    );
+    clip-path: none;
+}
+
+.sprite.shop em {
+    bottom: 24%;
+    left: 22%;
+    width: 25%;
+    height: 23%;
+    box-shadow: none;
+}
+
+/* Árvore */
+.sprite.tree i {
+    bottom: 2%;
+    left: 43%;
+    width: 15%;
+    height: 35%;
+    background: #8a6042;
+    border: 0;
+}
+
+.sprite.tree b {
+    bottom: 25%;
+    left: 15%;
+    width: 70%;
+    height: 65%;
+    background: #398657;
+    clip-path: polygon(
+        50% 0,
+        85% 22%,
+        100% 55%,
+        82% 100%,
+        18% 100%,
+        0 55%,
+        15% 22%
+    );
+}
+
+.sprite.tree em,
+.sprite.park em,
+.sprite.road em {
+    display: none;
+}
+
+/* Parque */
+.sprite.park i {
+    bottom: 10%;
+    left: 7%;
+    width: 86%;
+    height: 62%;
+    background: #75ba70;
+    border: 2px solid #e7f0c9;
+}
+
+.sprite.park b {
+    bottom: 44%;
+    left: 26%;
+    width: 48%;
+    height: 45%;
+    background: #398657;
+}
+
+/* Estrada */
+.sprite.road i {
+    bottom: 28%;
+    left: -20%;
+    width: 140%;
+    height: 36%;
+    background: #84948e;
+    border: 2px solid #f8f0d0;
+}
+
+.sprite.road b {
+    bottom: 44%;
+    left: -15%;
+    width: 130%;
+    height: 3px;
+    background: repeating-linear-gradient(
+        90deg,
+        #fff0be 0 8px,
+        transparent 8px 15px
+    );
+    clip-path: none;
+}
+
+
+
+
+/* 5. Controles do mapa */
+.map-controls {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: #fffefaed;
+    border: 1px solid #dfe7dd;
+    border-radius: 9px;
+}
+
+.map-controls button {
+    width: 29px;
+    height: 29px;
+    color: var(--ink);
+    background: white;
+    border: 0;
+    border-radius: 6px;
+    font-size: 18px;
+}
+
+.map-controls button:hover {
+    background: #eaf4e9;
+}
+
+#zoomLabel {
+    min-width: 38px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.legend {
+    position: absolute;
+    bottom: 15px;
+    left: 12px;
+    padding: 7px 9px;
+    color: #637569;
+    background: #fffefaeb;
+    border-radius: 6px;
+    font-size: 10px;
+}
+
+/* Estatísticas inferiores */
+.bottom {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 66px;
+    padding-top: 13px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 100px;
+}
+
+.stat > span {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    color: var(--green);
+    background: #dff1e1;
+    border-radius: 9px;
+    font-size: 21px;
+}
+
+.stat div {
+    display: grid;
+    gap: 1px;
+}
+
+.stat b {
+    font-size: 15px;
+}
+
+.stat small {
+    color: var(--muted);
+    font-size: 9px;
+}
+
+#message {
+    flex: 1;
+    color: #68786e;
+    font-size: 11px;
+}
+
+#clear {
+    color: #a35d4e;
+    background: transparent;
+    border: 0;
+    font-size: 10px;
+    font-weight: 900;
+}
+
+.icon {
+    display: none;
+}
+
+
+#map {
+  touch-action: none;
+}
+
+
+
+/* 6. Tablet */
+@media (max-width: 900px) {
+    .toolbar {
+        padding: 0 16px;
+    }
+
+    .game {
+        padding: 17px;
+    }
+
+    .actions > span {
+        display: none;
+    }
+
+    .island,
+    .island-shadow {
+        width: 78%;
+    }
+}
+
+/* 7. Celular */
+@media (max-width: 680px) {
+    .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: min(310px, 86vw);
+        max-width: 86vw;
+        transform: translateX(-105%);
+        transition: transform .22s;
+        box-shadow: 15px 0 40px #19352f20;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .icon {
+        display: grid;
+        place-items: center;
+        width: 37px;
+        height: 37px;
+        color: var(--ink);
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 20px;
+    }
+
+    .close {
+        font-size: 24px;
+    }
+
+    .overlay {
+        position: fixed;
+        display: none;
+        inset: 0;
+        z-index: 20;
+        background: #142d2466;
+    }
+
+    .overlay.show {
+        display: block;
+    }
+
+    .toolbar {
+        gap: 6px;
+        min-height: 70px;
+        padding: 0 10px;
+    }
+
+    .toolbar-left {
+        gap: 8px;
+    }
+
+    .toolbar h2 {
+        font-size: 16px;
+    }
+
+    .toolbar .kicker {
+        font-size: 7px;
+    }
+
+    .actions {
+        gap: 4px;
+    }
+
+    .tool {
+        padding: 9px 10px;
+    }
+
+    .tool span {
+        display: none;
+    }
+
+    .game {
+        padding: 14px 9px 10px;
+    }
+
+    .map-heading {
+        flex-direction: column;
+        gap: 5px;
+        font-size: 8px;
+    }
+
+    .map-heading span {
+        font-size: 10px;
+    }
+
+    .viewport {
+        min-height: 54vh;
+    }
+
+    .island,
+    .island-shadow {
+        width: 96%;
+        transform: rotate(30deg) skewX(-30deg) scale(.87);
+    }
+
+    .island-shadow {
+        top: calc(50% - 16vw + 12px);
+    }
+
+    .legend {
+        bottom: 6px;
+        left: 6px;
+        padding: 6px;
+        font-size: 8px;
+    }
+
+    .map-controls {
+        right: 6px;
+        bottom: 6px;
+        gap: 2px;
+        padding: 3px;
+    }
+
+    .map-controls button {
+        width: 26px;
+        height: 26px;
+    }
+
+    .bottom {
+        flex-wrap: wrap;
+        gap: 7px;
+        padding-top: 10px;
+    }
+
+    .stat {
+        min-width: 80px;
+    }
+
+    #message {
+        order: 3;
+        flex-basis: 100%;
+        margin: 0;
+        font-size: 10px;
+    }
+
+    #clear {
+        margin-left: auto;
+        padding: 8px 0;
+    }
+}
+
+/* 8. Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+    }
+}
+
+
