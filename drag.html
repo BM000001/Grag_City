@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drag Cit — Minha cidade</title>
+  <link rel="stylesheet" href="drag.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-head"><a class="brand" href="index.html">▦ DRAG <b>CIT</b></a><button id="closeMenu" class="icon close">×</button></div>
+    <div class="side-content">
+      <p class="kicker">MODO CONSTRUÇÃO</p><h1>Monte sua cidade</h1>
+      <p class="intro">Escolha uma peça e arraste para o mapa. No celular, selecione a peça e toque no terreno.</p>
+      <h2 class="catalog-title">Construções <small>6 peças</small></h2>
+      <div class="catalog" id="catalog">
+        <button class="piece selected" draggable="true" data-type="house"><span class="art house">⌂</span><span><b>Casa</b><small>Moradia pequena</small></span><span class="grip">⠿</span></button>
+        <button class="piece" draggable="true" data-type="apartment"><span class="art apartment">▥</span><span><b>Prédio</b><small>Mais moradores</small></span><span class="grip">⠿</span></button>
+        <button class="piece" draggable="true" data-type="shop"><span class="art shop">▤</span><span><b>Loja</b><small>Comércio local</small></span><span class="grip">⠿</span></button>
+        <button class="piece" draggable="true" data-type="tree"><span class="art tree">♣</span><span><b>Árvore</b><small>Mais natureza</small></span><span class="grip">⠿</span></button>
+        <button class="piece" draggable="true" data-type="park"><span class="art park">✿</span><span><b>Parque</b><small>Área de lazer</small></span><span class="grip">⠿</span></button>
+        <button class="piece" draggable="true" data-type="road"><span class="art road">━</span><span><b>Rua</b><small>Conecte os bairros</small></span><span class="grip">⠿</span></button>
+      </div>
+      <p class="tip">✦ <span><b>Dica:</b> selecione uma peça e toque em um espaço livre do mapa para colocá-la.</span></p>
+    </div>
+    <div class="side-foot">🟢 SUA CIDADE, SUAS REGRAS</div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="workspace">
+    <header class="toolbar">
+      <div class="toolbar-left"><button id="openMenu" class="icon menu" aria-label="Abrir construções">☰</button><div><p class="kicker">SEU MUNDO</p><h2>Minha cidade</h2></div></div>
+      <div class="actions"><span id="saveStatus">Alterações não salvas</span><button id="removeMode" class="tool secondary" aria-pressed="false">⌫ <span>Remover</span></button><button id="save" class="tool primary">▣ <span>Salvar</span></button></div>
+    </header>
+    <section class="game">
+      <div class="map-heading"><b>🟢 TERRENO DE CONSTRUÇÃO</b><span id="hint">Selecione uma peça e coloque no mapa</span></div>
+      <div class="viewport" id="viewport">
+        <div class="island-shadow"></div>
+        <div class="island" id="map" aria-label="Mapa isométrico da cidade">
+          <div class="tiles" id="tiles"></div><div class="buildings" id="buildings"></div>
+        </div>
+        <div class="map-controls"><button id="zoomOut" aria-label="Diminuir zoom">−</button><span id="zoomLabel">100%</span><button id="zoomIn" aria-label="Aumentar zoom">+</button><button id="resetZoom" aria-label="Restaurar zoom">↺</button></div>
+        <div class="legend">▦ Grade de construção</div>
+      </div>
+      <div class="bottom"><div class="stat"><span>⌂</span><div><b id="count">0</b><small>construções</small></div></div><p id="message" role="status">Sua cidade começa com uma ideia. Coloque a primeira construção!</p><button id="clear">Limpar cidade</button></div>
+    </section>
+  </main>
+</div>
+<script src="drag.js"></script>
+</body>
+</html>
