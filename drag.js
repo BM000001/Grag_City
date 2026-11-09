@@ -91,9 +91,11 @@ function salvarCidade() {
     localStorage.setItem(CHAVE_CIDADE, JSON.stringify(cidade));
     document.getElementById("saveStatus").textContent = "Salvo automaticamente";
     document.getElementById("saveStatus").classList.remove("is-error");
+    return true;
   } catch (erro) {
     document.getElementById("saveStatus").textContent = "Não foi possível salvar";
     mostrarMensagem("O navegador não conseguiu salvar a cidade.");
+    return false;
   }
 }
 
