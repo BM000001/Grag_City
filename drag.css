@@ -1046,3 +1046,62 @@ a:focus-visible {
   .placed > .building-art { width:82%; height:74%; }
   .placed-label { font-size:7px; }
 }
+
+
+/* Mapa visto de cima: ruas, quadras e lotes mais fáceis de ler */
+.viewport {
+  min-height: 440px;
+  background:linear-gradient(180deg,#90c9e2 0%,#c9e6e8 46%,#dce8d5 100%);
+  transition:background .35s ease;
+}
+.island-shadow { display:none; }
+.island {
+  width:min(92%,920px);
+  aspect-ratio:1.48 / 1;
+  transform:none;
+  border:10px solid #f3e9cb;
+  border-radius:24px;
+  background-color:#a9d18f;
+  background-image:
+    linear-gradient(90deg,transparent 0 31%,#87958b 31% 37%,transparent 37% 64%,#87958b 64% 70%,transparent 70%),
+    linear-gradient(0deg,transparent 0 30%,#87958b 30% 37%,transparent 37% 63%,#87958b 63% 70%,transparent 70%),
+    radial-gradient(ellipse at 17% 18%,#c4dda0 0 9%,transparent 10%),
+    radial-gradient(ellipse at 84% 80%,#c4dda0 0 10%,transparent 11%);
+  box-shadow:0 12px 0 #9eaa86,0 22px 40px #2947382b;
+}
+.tiles { grid-template:repeat(8,1fr)/repeat(12,1fr); }
+.tile {
+  background:rgba(183,218,147,.34);
+  border:1px solid rgba(244,245,214,.35);
+  border-radius:4px;
+}
+.tile:nth-child(odd) { background:rgba(202,229,163,.30); }
+.tile.occupied { background:rgba(155,202,137,.23); }
+.tile:hover,.tile.drop-target {
+  background:rgba(255,255,220,.55);
+  outline:2px solid #fff7d4;
+  outline-offset:-2px;
+}
+.map-heading b { color:#48634d; }
+.viewport.night {
+  background:linear-gradient(180deg,#182a50 0%,#35466a 48%,#56667a 100%);
+}
+.viewport.night .island {
+  background-color:#526e57;
+  background-image:
+    linear-gradient(90deg,transparent 0 31%,#4e5c5b 31% 37%,transparent 37% 64%,#4e5c5b 64% 70%,transparent 70%),
+    linear-gradient(0deg,transparent 0 30%,#4e5c5b 30% 37%,transparent 37% 63%,#4e5c5b 63% 70%,transparent 70%),
+    radial-gradient(ellipse at 17% 18%,#78906a 0 9%,transparent 10%),
+    radial-gradient(ellipse at 84% 80%,#78906a 0 10%,transparent 11%);
+  border-color:#d5d0b4;
+  box-shadow:0 12px 0 #384c40,0 22px 40px #0a142d66;
+}
+.viewport.night .tile { background:rgba(111,147,102,.25); border-color:rgba(211,220,178,.2); }
+.viewport.night .tile:nth-child(odd) { background:rgba(134,163,111,.22); }
+.viewport.night .tile.occupied { background:rgba(162,180,105,.20); }
+.viewport.night .map-heading b { color:#d9e4d6; }
+.viewport.night .legend,.viewport.night .map-controls { box-shadow:0 2px 10px #101b3390; }
+@media(max-width:680px) {
+  .island { width:96%; aspect-ratio:1.03 / 1; border-width:7px; border-radius:17px; }
+  .viewport { min-height:54vh; }
+}
