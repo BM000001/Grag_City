@@ -468,6 +468,25 @@ function aplicarTema() {
   botao.setAttribute("aria-pressed", String(temaCeu === "night"));
 }
 
+function aplicarClimaNoMapa() {
+  let viewport = document.getElementById("viewport");
+  let clima = cidade.weatherCity;
+  let codigo = clima ? Number(clima.weatherCode) : -1;
+  let chuva = clima ? Number(clima.precipitation) : 0;
+
+  let nublado = [1, 2, 3, 45, 48].includes(codigo) ||
+    (codigo >= 51 && codigo <= 67) ||
+    (codigo >= 80 && codigo <= 82) ||
+    (codigo >= 95 && codigo <= 99);
+  let chovendo = chuva >= 0.1 ||
+    (codigo >= 51 && codigo <= 67) ||
+    (codigo >= 80 && codigo <= 82) ||
+    (codigo >= 95 && codigo <= 99);
+
+  viewport.classList.toggle("weather-cloudy", nublado);
+  viewport.classList.toggle("weather-rain", chovendo);
+}
+
 function alternarTema() {
   temaCeu = temaCeu === "day" ? "night" : "day";
   temaManual = true;
@@ -501,7 +520,7 @@ async function consultarClima(evento) {
     let local = dadosBusca.results[0];
     let climaUrl = "https://api.open-meteo.com/v1/forecast?latitude=" +
       local.latitude + "&longitude=" + local.longitude +
-      "&current=temperature_2m,precipitation,weather_code,wind_speed_10m&timezone=auto";
+      "&current=temperature_2m,precipitation,weather_code,wind_speed_10m,is_day,cloud_cover&timezone=auto";
     let respostaClima = await fetch(climaUrl);
     let dadosClima = await respostaClima.json();
 
@@ -510,8 +529,11 @@ async function consultarClima(evento) {
       temperature: dadosClima.current.temperature_2m,
       precipitation: dadosClima.current.precipitation,
       windSpeed: dadosClima.current.wind_speed_10m,
-      isDay: dadosClima.current.is_day
+      isDay: dadosClima.current.is_day,
+      weatherCode: dadosClima.current.weather_code,
+      cloudCover: dadosClima.current.cloud_cover
     };
+    aplicarClimaNoMapa();
     if (!temaManual) {
       temaCeu = dadosClima.current.is_day === 1 ? "day" : "night";
       cidade.sky = temaCeu;
