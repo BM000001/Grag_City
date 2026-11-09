@@ -977,3 +977,72 @@ a:focus-visible {
 .weather-advice { margin: 6px 0 0; color: #315f43; font-size: 10px; line-height: 1.5; font-weight: 800; }
 .weather-credit { display: block; margin-top: 6px; color: #829087; font-size: 8px; }
 .weather-credit a { color: #456d50; }
+
+
+/* Construções desenhadas com formas CSS, sem emojis */
+.piece-art { display:grid; flex:0 0 46px; place-items:center; width:46px; height:42px; overflow:hidden; background:#f5f4ed; border-radius:8px; }
+.building-art { position:relative; display:block; width:82%; height:88%; --building-color:#c85e4d; }
+.building-art span { position:absolute; display:block; }
+.art-roof { z-index:2; top:7%; left:8%; width:84%; height:43%; background:var(--building-color); }
+.art-body { z-index:1; bottom:6%; left:20%; width:60%; height:52%; background:#f1dfbd; border:2px solid #fff7df; }
+.art-window { z-index:3; bottom:28%; left:27%; width:15%; height:15%; background:#9bd4e3; border:1px solid #fff5d8; }
+.art-window.window-two { left:58%; }
+.art-door { z-index:3; bottom:6%; left:44%; width:16%; height:29%; background:#8a6042; border:1px solid #fff0d3; }
+.art-sign { z-index:4; top:30%; left:40%; color:#fff; font-size:10px; font-weight:900; }
+.art-house .art-roof { clip-path:polygon(50% 0,100% 100%,0 100%); }
+.art-house .art-body { left:22%; width:56%; }
+.art-house .art-sign, .art-tree .art-window, .art-tree .art-door, .art-park .art-window, .art-park .art-door, .art-road .art-window, .art-road .art-door { display:none; }
+.art-apartment .art-roof { top:7%; left:19%; width:62%; height:12%; clip-path:none; }
+.art-apartment .art-body { top:16%; bottom:6%; left:22%; width:56%; height:auto; background:#89b3cf; }
+.art-apartment .art-window { bottom:auto; top:29%; left:31%; width:12%; height:10%; box-shadow:15px 0 #9bd4e3,0 15px #9bd4e3,15px 15px #9bd4e3,0 30px #9bd4e3,15px 30px #9bd4e3; }
+.art-apartment .art-window.window-two { display:none; }
+.art-apartment .art-door { display:none; }
+.art-hospital .art-body, .art-school .art-body, .art-police .art-body, .art-fire .art-body { left:17%; width:66%; height:50%; }
+.art-hospital .art-sign { top:2%; left:41%; color:#fff; font-size:17px; }
+.art-shop .art-roof { top:33%; left:12%; width:76%; height:20%; clip-path:none; background:repeating-linear-gradient(90deg,var(--building-color) 0 8px,#fff2d7 8px 16px); }
+.art-shop .art-body { top:49%; bottom:6%; left:17%; width:66%; height:auto; background:#f1d39b; }
+.art-shop .art-window { display:none; }
+.art-shop .art-door { left:25%; width:24%; height:22%; }
+.art-tree .art-roof { top:5%; left:16%; width:68%; height:63%; border-radius:50%; clip-path:none; }
+.art-tree .art-body { bottom:4%; left:43%; width:14%; height:40%; background:#805d40; border:0; }
+.art-park .art-roof { top:7%; left:8%; width:84%; height:75%; border-radius:18px; clip-path:none; background:#a8d58e; }
+.art-park .art-body { bottom:10%; left:14%; width:72%; height:12%; background:#c9b47e; border:0; }
+.art-police .art-sign { top:25%; left:39%; }
+.art-fire .art-sign { top:25%; left:39%; }
+.art-road .art-roof { top:35%; left:-10%; width:120%; height:32%; clip-path:none; background:#687874; border:2px solid #f9f1d3; }
+.art-road .art-body { top:49%; bottom:auto; left:-7%; width:114%; height:4%; background:repeating-linear-gradient(90deg,#fff1c4 0 8px,transparent 8px 15px); border:0; }
+.art-road .art-sign { display:none; }
+.piece .building-art { width:78%; height:82%; }
+.placed { padding:0; overflow:visible; background:transparent; border:0; }
+.placed-art { width:86%; height:78%; filter:drop-shadow(2px 4px 0 #587e50); transform:skewX(30deg) rotate(-30deg); }
+.placed-label { bottom:-8%; max-width:130%; padding:2px 4px; color:#203c30; background:#fffef3ed; border:1px solid #d7e2d1; border-radius:4px; font-size:clamp(6px,.8vw,9px); font-weight:800; }
+.type-marker { display:grid; flex:0 0 30px; place-items:center; width:30px; height:30px; color:#fff; background:var(--green); border-radius:8px; font-size:12px; font-weight:900; }
+.building-dialog { width:min(470px,calc(100vw - 24px)); max-height:calc(100vh - 24px); padding:20px; overflow-y:auto; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:0 24px 70px #142c2166; }
+.building-dialog::backdrop { background:#142d2485; backdrop-filter:blur(2px); }
+.building-dialog [hidden] { display:none !important; }
+.dialog-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.dialog-head h2 { margin:0; font-size:20px; }
+.dialog-close { display:grid; flex:0 0 38px; }
+.dialog-location { margin:0 0 12px; color:var(--muted); font-size:11px; }
+.building-form .control-input { margin-bottom:3px; }
+.color-input { width:100%; height:42px; padding:4px; background:#fff; border:1px solid #dce5dc; border-radius:8px; }
+.dialog-actions { display:flex; justify-content:space-between; gap:8px; margin-top:18px; }
+.tool.danger { color:#a34f42; background:#fff; border-color:#ecd4cf; }
+.tool.danger:hover { background:#fff0ec; }
+.room-scene { position:relative; height:205px; overflow:hidden; background:linear-gradient(#dcecf0 0 62%,#d9c7a1 62%); border:1px solid #d8dfd5; border-radius:12px; }
+.room-window { position:absolute; top:22px; right:25px; width:82px; height:70px; background:linear-gradient(#b7e2ee 0 65%,#76a66d 65%); border:7px solid #fff8e9; box-shadow:0 0 0 1px #b9c6b6; }
+.room-shelf { position:absolute; right:19px; bottom:54px; width:100px; height:12px; background:#8d6948; box-shadow:0 9px 0 #bd976d; }
+.room-floor { position:absolute; bottom:0; left:0; width:100%; height:38%; background:repeating-linear-gradient(0deg,#cbb58f 0 18px,#d7c4a2 18px 20px); }
+.interior-drawing { position:absolute; bottom:20px; left:16%; width:108px; height:120px; }
+.interior-drawing .building-art { width:100%; height:100%; filter:drop-shadow(3px 5px 0 #6c7e5d); }
+.inside-message { margin:11px 0; color:#506b59; font-size:12px; }
+.building-info { display:grid; gap:8px; margin:12px 0 0; }
+.building-info div { padding:9px 10px; background:#f3f7ef; border:1px solid #e4ecdf; border-radius:8px; }
+.building-info dt { color:#718078; font-size:9px; font-weight:800; text-transform:uppercase; }
+.building-info dd { margin:3px 0 0; font-size:12px; white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:680px) {
+  .building-dialog { padding:15px; }
+  .room-scene { height:180px; }
+  .placed-art { width:82%; height:74%; }
+  .placed-label { font-size:7px; }
+}
