@@ -473,8 +473,9 @@ function aplicarClimaNoMapa() {
   let clima = cidade.weatherCity;
   let codigo = clima ? Number(clima.weatherCode) : -1;
   let chuva = clima ? Number(clima.precipitation) : 0;
+  let coberturaNuvens = clima ? Number(clima.cloudCover) : 0;
 
-  let nublado = [1, 2, 3, 45, 48].includes(codigo) ||
+  let nublado = coberturaNuvens >= 55 || [1, 2, 3, 45, 48].includes(codigo) ||
     (codigo >= 51 && codigo <= 67) ||
     (codigo >= 80 && codigo <= 82) ||
     (codigo >= 95 && codigo <= 99);
@@ -559,7 +560,7 @@ function mostrarClima() {
 
   document.getElementById("cityInput").value = clima.name.split(",")[0];
   document.getElementById("weatherResult").textContent =
-    clima.name + ": " + temperatura + " °C · chuva " + chuva + " mm · vento " + vento + " km/h";
+    clima.name + ": " + temperatura + " °C · chuva " + chuva + " mm · nuvens " + Number(clima.cloudCover || 0) + "% · vento " + vento + " km/h";
 
   if (vento >= 30) {
     document.getElementById("weatherAdvice").textContent =
