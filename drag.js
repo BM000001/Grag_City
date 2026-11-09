@@ -1,515 +1,694 @@
 (() => {
-  'use strict';
+  // Dados principais do jogo
+  const LINHAS = 8;
+  const COLUNAS = 12;
+  const CHAVE_CIDADE = "dragCitCityV1";
 
-  const ROWS = 8;
-  const COLS = 12;
-  const STORAGE_KEY = 'dragCitCityV1';
-  const TYPES = [
-    { id: 'house', name: 'Casa', description: 'Moradia', icon: '⌂', color: 'house' },
-    { id: 'apartment', name: 'Prédio', description: 'Moradia coletiva', icon: '▥', color: 'apartment' },
-    { id: 'hospital', name: 'Hospital', description: 'Saúde e atendimento', icon: '✚', color: 'hospital' },
-    { id: 'shop', name: 'Loja', description: 'Comércio local', icon: '▤', color: 'shop' },
-    { id: 'school', name: 'Escola', description: 'Educação', icon: '⌑', color: 'school' },
-    { id: 'park', name: 'Parque', description: 'Lazer e natureza', icon: '✿', color: 'park' },
-    { id: 'tree', name: 'Árvore', description: 'Área verde', icon: '♣', color: 'tree' },
-    { id: 'police', name: 'Delegacia', description: 'Segurança pública', icon: '✦', color: 'police' },
-    { id: 'fire', name: 'Bombeiros', description: 'Emergência e resgate', icon: '✹', color: 'fire' },
-    { id: 'road', name: 'Rua', description: 'Mobilidade urbana', icon: '━', color: 'road' }
+  // Cada tipo tem um nome, um ícone e uma cor definida no CSS.
+  const tiposConstrucao = [
+    { id: "house", nome: "Casa", descricao: "Moradia", icone: "⌂", cor: "house" },
+    { id: "apartment", nome: "Prédio", descricao: "Moradia coletiva", icone: "▥", cor: "apartment" },
+    { id: "hospital", nome: "Hospital", descricao: "Saúde e atendimento", icone: "✚", cor: "hospital" },
+    { id: "shop", nome: "Loja", descricao: "Comércio local", icone: "▤", cor: "shop" },
+    { id: "school", nome: "Escola", descricao: "Educação", icone: "⌑", cor: "school" },
+    { id: "park", nome: "Parque", descricao: "Lazer e natureza", icone: "✿", cor: "park" },
+    { id: "tree", nome: "Árvore", descricao: "Área verde", icone: "♣", cor: "tree" },
+    { id: "police", nome: "Delegacia", descricao: "Segurança pública", icone: "✦", cor: "police" },
+    { id: "fire", nome: "Bombeiros", descricao: "Emergência e resgate", icone: "✹", cor: "fire" },
+    { id: "road", nome: "Rua", descricao: "Mobilidade urbana", icone: "━", cor: "road" }
   ];
-  const byId = (id) => document.getElementById(id);
-  const ui = {
-    sidebar: byId('sidebar'), overlay: byId('overlay'), catalog: byId('catalog'), tiles: byId('tiles'),
-    buildings: byId('buildings'), list: byId('buildingList'), emptyList: byId('emptyList'),
-    filter: byId('filterType'), sort: byId('sortBy'), search: byId('searchBuildings'),
-    count: byId('count'), mapCount: byId('mapCount'), pieceCount: byId('pieceCount'),
-    hint: byId('hint'), message: byId('message'), saveStatus: byId('saveStatus'), removeMode: byId('removeMode'),
-    dialog: byId('buildingDialog'), form: byId('buildingForm'), name: byId('buildingName'),
-    status: byId('buildingStatus'), notes: byId('buildingNotes'), location: byId('dialogLocation'),
-    cityInput: byId('cityInput'), weatherResult: byId('weatherResult'), weatherButton: byId('weatherButton'), weatherAdvice: byId('weatherAdvice'),
-    zoomLabel: byId('zoomLabel'), map: byId('map'), islandShadow: document.querySelector('.island-shadow')
-  };
-  let city = readState();
-  let selectedType = 'house';
-  let selectedBuildingId = null;
-  let removeMode = false;
+
+  // Elementos da página usados pelo JavaScript
+  const catalogo = document.getElementById("catalog");
+  const mapaDeLotes = document.getElementById("tiles");
+  const mapaDeConstrucoes = document.getElementById("buildings");
+  const listaDeConstrucoes = document.getElementById("buildingList");
+  const mensagem = document.getElementById("message");
+  const busca = document.getElementById("searchBuildings");
+  const filtro = document.getElementById("filterType");
+  const ordenacao = document.getElementById("sortBy");
+  const janelaDetalhes = document.getElementById("buildingDialog");
+  const formularioDetalhes = document.getElementById("buildingForm");
+  const campoNome = document.getElementById("buildingName");
+  const campoStatus = document.getElementById("buildingStatus");
+  const campoObservacoes = document.getElementById("buildingNotes");
+
+  // Estado atual da cidade
+  let cidade = carregarCidade();
+  let tipoSelecionado = "house";
+  let idSelecionado = "";
+  let modoRemover = false;
+  let tipoArrastado = "";
+  let construcaoArrastada = "";
   let zoom = 0.86;
-  let draggedBuildingId = null;
-  let draggedType = null;
 
-  function toCell(value, size) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) return 0;
-    if (Number.isInteger(number) && number >= 0 && number < size) return number;
-    if (number >= 0 && number <= 1) return Math.min(size - 1, Math.floor(number * size));
-    if (number >= 0 && number <= 100) return Math.min(size - 1, Math.floor((number / 100) * size));
-    return Math.max(0, Math.min(size - 1, Math.round(number)));
-  }
+  // Procura os dados salvos para continuar a cidade depois de fechar a página.
+  function carregarCidade() {
+    let dadosSalvos = localStorage.getItem(CHAVE_CIDADE);
 
-  function normalizeBuilding(item, index) {
-    if (!item || typeof item !== 'object') return null;
-    const type = TYPES.some((entry) => entry.id === item.type) ? item.type : 'house';
-    const row = Number.isInteger(item.row) ? item.row : toCell(item.y, ROWS);
-    const col = Number.isInteger(item.col) ? item.col : toCell(item.x, COLS);
-    return {
-      id: String(item.id ?? `legacy-${index}-${Date.now()}`),
-      type, row, col,
-      name: String(item.name || item.title || `${typeFor(type).name} ${index + 1}`).slice(0, 40),
-      notes: String(item.notes || item.description || '').slice(0, 240),
-      status: ['planned', 'building', 'ready'].includes(item.status) ? item.status : 'planned',
-      createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
-      updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
-    };
-  }
+    if (dadosSalvos === null) {
+      return { buildings: [], weatherCity: null };
+    }
 
-  function readState() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { version: 1, buildings: [], weatherCity: null };
-      const parsed = JSON.parse(raw);
-      const saved = Array.isArray(parsed) ? parsed : (parsed.buildings || parsed.items || []);
-      const buildings = Array.isArray(saved) ? saved.map(normalizeBuilding).filter(isValidBuilding) : [];
-      return { version: 1, buildings, weatherCity: parsed.weatherCity && typeof parsed.weatherCity === 'object' ? parsed.weatherCity : null };
-    } catch (error) {
-      return { version: 1, buildings: [], weatherCity: null };
+      let dados = JSON.parse(dadosSalvos);
+      let listaSalva = dados.buildings || dados.items || [];
+      let construcoes = [];
+
+      // Também lê algumas versões antigas que guardavam x e y no lugar de linha e coluna.
+      for (let i = 0; i < listaSalva.length; i++) {
+        let item = listaSalva[i];
+
+        if (item.row === undefined) {
+          item.row = converterPosicao(item.y, LINHAS);
+        }
+        if (item.col === undefined) {
+          item.col = converterPosicao(item.x, COLUNAS);
+        }
+
+        if (item.id === undefined) {
+          item.id = String(Date.now() + i);
+        }
+        if (item.name === undefined) {
+          item.name = procurarTipo(item.type).nome + " " + (i + 1);
+        }
+        if (item.notes === undefined) {
+          item.notes = "";
+        }
+        if (item.status === undefined) {
+          item.status = "planned";
+        }
+        if (item.createdAt === undefined) {
+          item.createdAt = new Date().toISOString();
+        }
+
+        if (item.row >= 0 && item.row < LINHAS && item.col >= 0 && item.col < COLUNAS) {
+          construcoes.push(item);
+        }
+      }
+
+      return {
+        buildings: construcoes,
+        weatherCity: dados.weatherCity || null
+      };
+    } catch (erro) {
+      return { buildings: [], weatherCity: null };
     }
   }
 
-  function isValidBuilding(item) {
-    return item && typeof item.id === 'string' && TYPES.some((type) => type.id === item.type) &&
-      Number.isInteger(item.row) && item.row >= 0 && item.row < ROWS &&
-      Number.isInteger(item.col) && item.col >= 0 && item.col < COLS;
+  // Converte uma posição antiga do mapa para uma casa da grade.
+  function converterPosicao(valor, tamanho) {
+    let numero = Number(valor);
+
+    if (Number.isInteger(numero) && numero >= 0 && numero < tamanho) {
+      return numero;
+    }
+
+    if (numero >= 0 && numero <= 100) {
+      return Math.floor(numero / 100 * tamanho);
+    }
+
+    return 0;
   }
 
-  function persist(showStatus = true) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(city));
-      if (showStatus) {
-        ui.saveStatus.textContent = 'Salvo automaticamente';
-        ui.saveStatus.classList.remove('is-error');
+  function procurarTipo(id) {
+    for (let i = 0; i < tiposConstrucao.length; i++) {
+      if (tiposConstrucao[i].id === id) {
+        return tiposConstrucao[i];
       }
+    }
+
+    return tiposConstrucao[0];
+  }
+
+  function salvarCidade() {
+    try {
+      localStorage.setItem(CHAVE_CIDADE, JSON.stringify(cidade));
+      document.getElementById("saveStatus").textContent = "Salvo automaticamente";
+      document.getElementById("saveStatus").classList.remove("is-error");
       return true;
-    } catch (error) {
-      ui.saveStatus.textContent = 'Não foi possível salvar';
-      ui.saveStatus.classList.add('is-error');
-      announce('O navegador não conseguiu salvar esta cidade. Verifique o espaço disponível.');
+    } catch (erro) {
+      document.getElementById("saveStatus").textContent = "Não foi possível salvar";
+      document.getElementById("saveStatus").classList.add("is-error");
+      mostrarMensagem("O navegador não conseguiu salvar a cidade.");
       return false;
     }
   }
 
-  function typeFor(id) { return TYPES.find((type) => type.id === id); }
-  function makeId() {
-    return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
-  function announce(message) { ui.message.textContent = message; }
-  function escapeLabel(value) { return String(value || '').trim(); }
-  function occupied(row, col, exceptId = null) {
-    return city.buildings.some((item) => item.row === row && item.col === col && item.id !== exceptId);
+  function mostrarMensagem(texto) {
+    mensagem.textContent = texto;
   }
 
-  function renderCatalog() {
-    ui.catalog.replaceChildren();
-    const fragment = document.createDocumentFragment();
-    TYPES.forEach((type) => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'piece';
-      button.dataset.type = type.id;
-      button.draggable = true;
-      button.setAttribute('aria-pressed', String(selectedType === type.id));
-      const art = document.createElement('span');
-      art.className = `art ${type.color}`;
-      art.textContent = type.icon;
-      const text = document.createElement('span');
-      const name = document.createElement('b');
-      name.textContent = type.name;
-      const description = document.createElement('small');
-      description.textContent = type.description;
-      text.append(name, description);
-      const grip = document.createElement('span');
-      grip.className = 'grip';
-      grip.setAttribute('aria-hidden', 'true');
-      grip.textContent = '⠿';
-      button.append(art, text, grip);
-      fragment.append(button);
-    });
-    ui.catalog.append(fragment);
-    ui.pieceCount.textContent = `${TYPES.length} peças`;
-    renderFilterOptions();
-    updateSelectedPiece();
-  }
+  function loteOcupado(linha, coluna, idIgnorado) {
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      let construcao = cidade.buildings[i];
 
-  function renderFilterOptions() {
-    const previous = ui.filter.value || 'all';
-    ui.filter.replaceChildren();
-    const all = document.createElement('option');
-    all.value = 'all'; all.textContent = 'Todos'; ui.filter.append(all);
-    TYPES.forEach((type) => {
-      const option = document.createElement('option');
-      option.value = type.id; option.textContent = type.name; ui.filter.append(option);
-    });
-    ui.filter.value = previous;
-  }
-
-  function updateSelectedPiece() {
-    ui.catalog.querySelectorAll('.piece').forEach((button) => {
-      const active = button.dataset.type === selectedType;
-      button.classList.toggle('selected', active);
-      button.setAttribute('aria-pressed', String(active));
-    });
-    const type = typeFor(selectedType);
-    ui.hint.textContent = removeMode ? 'Abra a construção e escolha Excluir nos detalhes' : `Peça selecionada: ${type.name}. Toque em um lote livre ou arraste até ele.`;
-  }
-
-  function renderTiles() {
-    ui.tiles.replaceChildren();
-    const fragment = document.createDocumentFragment();
-    for (let row = 0; row < ROWS; row += 1) {
-      for (let col = 0; col < COLS; col += 1) {
-        const tile = document.createElement('button');
-        tile.type = 'button';
-        tile.className = 'tile';
-        tile.dataset.row = String(row);
-        tile.dataset.col = String(col);
-        tile.setAttribute('role', 'gridcell');
-        tile.setAttribute('aria-label', `Lote ${row + 1}, ${col + 1}${occupied(row, col) ? ', ocupado' : ', livre'}`);
-        tile.classList.toggle('occupied', occupied(row, col));
-        fragment.append(tile);
+      if (construcao.row === linha && construcao.col === coluna && construcao.id !== idIgnorado) {
+        return true;
       }
     }
-    ui.tiles.append(fragment);
+
+    return false;
   }
 
-  function getVisibleBuildings() {
-    const query = ui.search.value.trim().toLocaleLowerCase('pt-BR');
-    const type = ui.filter.value;
-    const result = city.buildings.filter((item) => {
-      const typeInfo = typeFor(item.type);
-      const text = `${item.name} ${item.notes || ''} ${typeInfo.name} ${item.status || ''}`.toLocaleLowerCase('pt-BR');
-      return (type === 'all' || item.type === type) && (!query || text.includes(query));
-    });
-    const sort = ui.sort.value;
-    result.sort((a, b) => {
-      if (sort === 'name') return a.name.localeCompare(b.name, 'pt-BR');
-      if (sort === 'type') return typeFor(a.type).name.localeCompare(typeFor(b.type).name, 'pt-BR') || a.name.localeCompare(b.name, 'pt-BR');
-      if (sort === 'oldest') return a.createdAt.localeCompare(b.createdAt);
-      return b.createdAt.localeCompare(a.createdAt);
-    });
-    return result;
-  }
+  // Cria os botões das construções no menu lateral.
+  function mostrarCatalogo() {
+    catalogo.replaceChildren();
 
-  function renderBuildingCard(item) {
-    const type = typeFor(item.type);
-    const listItem = document.createElement('li');
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'building-row';
-    button.dataset.id = item.id;
-    button.setAttribute('aria-label', `${item.name}, ${type.name}, lote ${item.row + 1}, ${item.col + 1}. Abrir detalhes.`);
-    const icon = document.createElement('span');
-    icon.className = `art mini ${type.color}`;
-    icon.textContent = type.icon;
-    const info = document.createElement('span');
-    info.className = 'building-row-info';
-    const name = document.createElement('b'); name.textContent = item.name;
-    const meta = document.createElement('small'); meta.textContent = `${type.name} · Lote ${item.row + 1}, ${item.col + 1}`;
-    info.append(name, meta);
-    const status = document.createElement('span');
-    status.className = `status-dot status-${item.status || 'planned'}`;
-    status.setAttribute('aria-label', statusLabel(item.status));
-    button.append(icon, info, status);
-    listItem.append(button);
-    return listItem;
-  }
+    for (let i = 0; i < tiposConstrucao.length; i++) {
+      let tipo = tiposConstrucao[i];
+      let botao = document.createElement("button");
+      let icone = document.createElement("span");
+      let textos = document.createElement("span");
+      let nome = document.createElement("b");
+      let descricao = document.createElement("small");
+      let alca = document.createElement("span");
 
-  function statusLabel(status) {
-    if (status === 'ready') return 'Concluída';
-    if (status === 'building') return 'Em construção';
-    return 'Planejada';
-  }
+      botao.type = "button";
+      botao.className = "piece";
+      botao.dataset.type = tipo.id;
+      botao.draggable = true;
+      botao.setAttribute("aria-pressed", "false");
 
-  function renderBuildings() {
-    const visible = getVisibleBuildings();
-    ui.list.replaceChildren();
-    ui.buildings.replaceChildren();
-    const listFragment = document.createDocumentFragment();
-    const mapFragment = document.createDocumentFragment();
-    visible.forEach((item) => {
-      listFragment.append(renderBuildingCard(item));
-      const type = typeFor(item.type);
-      const placed = document.createElement('button');
-      placed.type = 'button';
-      placed.className = `placed placed-${type.color}`;
-      placed.dataset.id = item.id;
-      placed.draggable = true;
-      placed.style.left = `${((item.col + 0.5) / COLS) * 100}%`;
-      placed.style.top = `${((item.row + 0.5) / ROWS) * 100}%`;
-      placed.setAttribute('aria-label', `${item.name}, ${type.name}, lote ${item.row + 1}, ${item.col + 1}. Toque para ver os detalhes ou arraste para mover.`);
-      const icon = document.createElement('span');
-      icon.className = 'placed-icon'; icon.textContent = type.icon;
-      const label = document.createElement('span');
-      label.className = 'placed-label'; label.textContent = item.name;
-      placed.append(icon, label);
-      mapFragment.append(placed);
-    });
-    ui.list.append(listFragment);
-    ui.buildings.append(mapFragment);
-    const total = city.buildings.length;
-    ui.count.textContent = `${total} ${total === 1 ? 'item' : 'itens'}`;
-    ui.mapCount.textContent = String(total);
-    ui.emptyList.hidden = visible.length > 0;
-    renderTiles();
-  }
+      icone.className = "art " + tipo.cor;
+      icone.textContent = tipo.icone;
+      nome.textContent = tipo.nome;
+      descricao.textContent = tipo.descricao;
+      textos.append(nome, descricao);
 
-  function selectType(type) {
-    if (!typeFor(type)) return;
-    selectedType = type;
-    removeMode = false;
-    ui.removeMode.setAttribute('aria-pressed', 'false');
-    ui.removeMode.classList.remove('active');
-    updateSelectedPiece();
-    const info = typeFor(type);
-    announce(`${info.name} selecionada. Toque em um lote livre para colocá-la.`);
-    closeMenu();
-  }
+      alca.className = "grip";
+      alca.setAttribute("aria-hidden", "true");
+      alca.textContent = "⠿";
 
-  function placeBuilding(type, row, col) {
-    if (!typeFor(type) || !Number.isInteger(row) || !Number.isInteger(col)) return;
-    if (occupied(row, col)) {
-      announce('Esse lote já está ocupado. Escolha um espaço livre ou arraste uma construção para movê-la.');
-      return;
+      botao.append(icone, textos, alca);
+      catalogo.append(botao);
     }
-    const existingCount = city.buildings.filter((item) => item.type === type).length;
-    const item = {
-      id: makeId(), type, row, col,
-      name: `${typeFor(type).name} ${existingCount + 1}`,
-      notes: '', status: 'planned', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
-    };
-    city.buildings.push(item);
-    persist();
-    renderBuildings();
-    announce(`${item.name} adicionada ao lote ${row + 1}, ${col + 1}. Toque nela para ver ou editar os detalhes.`);
+
+    document.getElementById("pieceCount").textContent = tiposConstrucao.length + " peças";
+    mostrarOpcoesDeFiltro();
+    atualizarTipoSelecionado();
   }
 
-  function moveBuilding(id, row, col) {
-    const item = city.buildings.find((entry) => entry.id === id);
-    if (!item) return;
-    if (occupied(row, col, id)) {
-      announce('Esse lote já está ocupado. A construção não foi movida.');
-      return;
-    }
-    item.row = row; item.col = col; item.updatedAt = new Date().toISOString();
-    persist(); renderBuildings();
-    announce(`${item.name} movida para o lote ${row + 1}, ${col + 1}.`);
-  }
+  function mostrarOpcoesDeFiltro() {
+    filtro.replaceChildren();
 
-  function openDetails(id) {
-    const item = city.buildings.find((entry) => entry.id === id);
-    if (!item) return;
-    selectedBuildingId = id;
-    const type = typeFor(item.type);
-    ui.dialog.querySelector('#dialogTitle').textContent = `${type.icon} ${item.name}`;
-    ui.location.textContent = `${type.name} · Lote ${item.row + 1}, ${item.col + 1}`;
-    ui.name.value = item.name;
-    ui.status.value = item.status || 'planned';
-    ui.notes.value = item.notes || '';
-    ui.dialog.showModal();
-  }
+    let opcaoTodos = document.createElement("option");
+    opcaoTodos.value = "all";
+    opcaoTodos.textContent = "Todos";
+    filtro.append(opcaoTodos);
 
-  function closeDetails() {
-    if (ui.dialog.open) ui.dialog.close();
-    selectedBuildingId = null;
-  }
-
-  function deleteBuilding(id) {
-    const item = city.buildings.find((entry) => entry.id === id);
-    if (!item) return;
-    city.buildings = city.buildings.filter((entry) => entry.id !== id);
-    closeDetails(); persist(); renderBuildings();
-    announce(`${item.name} foi removida da cidade.`);
-  }
-
-  function saveBuilding(event) {
-    event.preventDefault();
-    const item = city.buildings.find((entry) => entry.id === selectedBuildingId);
-    const name = escapeLabel(ui.name.value);
-    if (!item || !name) { ui.name.setCustomValidity('Informe um nome para a construção.'); ui.name.reportValidity(); return; }
-    ui.name.setCustomValidity('');
-    item.name = name.slice(0, 40);
-    item.status = ui.status.value;
-    item.notes = ui.notes.value.trim().slice(0, 240);
-    item.updatedAt = new Date().toISOString();
-    persist(); renderBuildings();
-    announce(`${item.name} atualizada.`);
-    closeDetails();
-  }
-
-  function applyDrop(tile, event) {
-    event.preventDefault();
-    tile.classList.remove('drop-target');
-    const row = Number(tile.dataset.row);
-    const col = Number(tile.dataset.col);
-    const movingId = event.dataTransfer.getData('application/x-dragcit-building') || draggedBuildingId;
-    const type = event.dataTransfer.getData('text/plain') || draggedType;
-    if (movingId) moveBuilding(movingId, row, col);
-    else if (type) placeBuilding(type, row, col);
-    else placeBuilding(selectedType, row, col);
-    draggedBuildingId = null; draggedType = null;
-  }
-
-  function setZoom(next) {
-    zoom = Math.max(0.65, Math.min(1.12, next));
-    document.documentElement.style.setProperty('--map-zoom', String(zoom));
-    ui.zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
-  }
-
-  function closeMenu() {
-    ui.sidebar.classList.remove('open'); ui.overlay.classList.remove('show');
-  }
-
-  function openMenu() {
-    ui.sidebar.classList.add('open'); ui.overlay.classList.add('show');
-  }
-
-  async function fetchWeather(event) {
-    event.preventDefault();
-    const query = ui.cityInput.value.trim();
-    if (query.length < 2) { ui.weatherResult.textContent = 'Digite ao menos duas letras.'; return; }
-    ui.weatherButton.disabled = true;
-    ui.weatherResult.textContent = 'Consultando o clima…';
-    try {
-      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=pt&countryCode=BR&format=json`;
-      const geoResponse = await fetch(geoUrl);
-      if (!geoResponse.ok) throw new Error('geocoding');
-      const geo = await geoResponse.json();
-      const place = geo.results && geo.results[0];
-      if (!place) { ui.weatherResult.textContent = 'Não encontrei essa cidade. Confira o nome e tente novamente.'; return; }
-      const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(place.latitude)}&longitude=${encodeURIComponent(place.longitude)}&current=temperature_2m,precipitation,weather_code,wind_speed_10m&timezone=auto`;
-      const forecastResponse = await fetch(forecastUrl);
-      if (!forecastResponse.ok) throw new Error('forecast');
-      const forecast = await forecastResponse.json();
-      const current = forecast.current;
-      const cityName = [place.name, place.admin1, place.country].filter(Boolean).join(', ');
-      city.weatherCity = { name: cityName, latitude: place.latitude, longitude: place.longitude, temperature: current.temperature_2m, precipitation: current.precipitation, windSpeed: current.wind_speed_10m, weatherCode: current.weather_code, checkedAt: new Date().toISOString() };
-      persist(false);
-      renderWeather();
-      announce(`Clima atualizado para ${place.name}.`);
-    } catch (error) {
-      ui.weatherResult.textContent = 'Não consegui consultar agora. Verifique a conexão e tente novamente.';
-    } finally {
-      ui.weatherButton.disabled = false;
+    for (let i = 0; i < tiposConstrucao.length; i++) {
+      let opcao = document.createElement("option");
+      opcao.value = tiposConstrucao[i].id;
+      opcao.textContent = tiposConstrucao[i].nome;
+      filtro.append(opcao);
     }
   }
 
-  function renderWeather() {
-    if (!city.weatherCity) return;
-    const weather = city.weatherCity;
-    const updated = new Date(weather.checkedAt);
-    const time = Number.isNaN(updated.getTime()) ? '' : ` · ${updated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-    ui.cityInput.value = weather.name.split(',')[0];
-    ui.weatherResult.textContent = `${weather.name}: ${weather.temperature} °C · chuva ${weather.precipitation} mm · vento ${weather.windSpeed} km/h${time}`;
-    const temperature = Number(weather.temperature) || 0;
-    const precipitation = Number(weather.precipitation) || 0;
-    const windSpeed = Number(weather.windSpeed) || 0;
-    if (windSpeed >= 30) {
-      ui.weatherAdvice.textContent = 'Ventos fortes: mantenha ruas acessíveis e priorize os serviços de emergência.';
-    } else if (precipitation >= 1) {
-      ui.weatherAdvice.textContent = 'Chuva: planeje acessos por ruas e mantenha hospital e bombeiros conectados.';
-    } else if (temperature >= 28) {
-      ui.weatherAdvice.textContent = 'Calor ou tempo seco: priorize árvores e parques para ampliar as áreas de sombra.';
+  function atualizarTipoSelecionado() {
+    let botoes = catalogo.querySelectorAll(".piece");
+
+    for (let i = 0; i < botoes.length; i++) {
+      let selecionado = botoes[i].dataset.type === tipoSelecionado;
+      botoes[i].classList.toggle("selected", selecionado);
+      botoes[i].setAttribute("aria-pressed", String(selecionado));
+    }
+
+    if (modoRemover) {
+      document.getElementById("hint").textContent = "Abra uma construção e escolha Excluir nos detalhes";
     } else {
-      ui.weatherAdvice.textContent = 'Clima ameno: equilibre moradias, serviços essenciais e áreas verdes.';
+      document.getElementById("hint").textContent =
+        "Peça selecionada: " + procurarTipo(tipoSelecionado).nome + ". Toque em um lote ou arraste até ele.";
     }
   }
 
-  ui.catalog.addEventListener('click', (event) => {
-    const button = event.target.closest('.piece');
-    if (button) selectType(button.dataset.type);
-  });
-  ui.catalog.addEventListener('dragstart', (event) => {
-    const button = event.target.closest('.piece');
-    if (!button || !event.dataTransfer) return;
-    draggedType = button.dataset.type;
-    event.dataTransfer.effectAllowed = 'copy';
-    event.dataTransfer.setData('text/plain', draggedType);
-  });
-  ui.catalog.addEventListener('dragend', () => { draggedType = null; });
+  // Desenha os 96 lotes do mapa.
+  function mostrarLotes() {
+    mapaDeLotes.replaceChildren();
 
-  ui.tiles.addEventListener('click', (event) => {
-    const tile = event.target.closest('.tile');
-    if (!tile) return;
-    if (removeMode) { announce('Para excluir, toque na construção e use o botão Excluir nos detalhes.'); return; }
-    placeBuilding(selectedType, Number(tile.dataset.row), Number(tile.dataset.col));
-  });
-  ui.tiles.addEventListener('dragover', (event) => {
-    const tile = event.target.closest('.tile');
-    if (!tile) return;
-    event.preventDefault(); tile.classList.add('drop-target');
-  });
-  ui.tiles.addEventListener('dragleave', (event) => {
-    const tile = event.target.closest('.tile');
-    if (tile && !tile.contains(event.relatedTarget)) tile.classList.remove('drop-target');
-  });
-  ui.tiles.addEventListener('drop', (event) => {
-    const tile = event.target.closest('.tile');
-    if (tile) applyDrop(tile, event);
+    for (let linha = 0; linha < LINHAS; linha++) {
+      for (let coluna = 0; coluna < COLUNAS; coluna++) {
+        let lote = document.createElement("button");
+        let ocupado = loteOcupado(linha, coluna, "");
+
+        lote.type = "button";
+        lote.className = "tile";
+        lote.dataset.row = linha;
+        lote.dataset.col = coluna;
+        lote.setAttribute("role", "gridcell");
+        lote.setAttribute(
+          "aria-label",
+          "Lote " + (linha + 1) + ", " + (coluna + 1) + (ocupado ? ", ocupado" : ", livre")
+        );
+        lote.classList.toggle("occupied", ocupado);
+        mapaDeLotes.append(lote);
+      }
+    }
+  }
+
+  function obterConstrucoesVisiveis() {
+    let resultado = [];
+    let textoBusca = busca.value.trim().toLowerCase();
+
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      let item = cidade.buildings[i];
+      let tipo = procurarTipo(item.type);
+      let textoItem = (item.name + " " + item.notes + " " + tipo.nome).toLowerCase();
+      let passouNoFiltro = filtro.value === "all" || item.type === filtro.value;
+      let passouNaBusca = textoBusca === "" || textoItem.includes(textoBusca);
+
+      if (passouNoFiltro && passouNaBusca) {
+        resultado.push(item);
+      }
+    }
+
+    if (ordenacao.value === "name") {
+      resultado.sort(function (a, b) {
+        return a.name.localeCompare(b.name, "pt-BR");
+      });
+    } else if (ordenacao.value === "type") {
+      resultado.sort(function (a, b) {
+        return procurarTipo(a.type).nome.localeCompare(procurarTipo(b.type).nome, "pt-BR");
+      });
+    } else if (ordenacao.value === "oldest") {
+      resultado.sort(function (a, b) {
+        return a.createdAt.localeCompare(b.createdAt);
+      });
+    } else {
+      resultado.sort(function (a, b) {
+        return b.createdAt.localeCompare(a.createdAt);
+      });
+    }
+
+    return resultado;
+  }
+
+  // Atualiza a lista lateral e as construções que aparecem no mapa.
+  function mostrarConstrucoes() {
+    let construcoesVisiveis = obterConstrucoesVisiveis();
+    listaDeConstrucoes.replaceChildren();
+    mapaDeConstrucoes.replaceChildren();
+
+    for (let i = 0; i < construcoesVisiveis.length; i++) {
+      let item = construcoesVisiveis[i];
+      let tipo = procurarTipo(item.type);
+
+      let linha = document.createElement("li");
+      let botaoLista = document.createElement("button");
+      let iconeLista = document.createElement("span");
+      let informacoes = document.createElement("span");
+      let nome = document.createElement("b");
+      let local = document.createElement("small");
+      let status = document.createElement("span");
+
+      botaoLista.type = "button";
+      botaoLista.className = "building-row";
+      botaoLista.dataset.id = item.id;
+      botaoLista.setAttribute(
+        "aria-label",
+        item.name + ", " + tipo.nome + ". Abrir detalhes."
+      );
+
+      iconeLista.className = "art mini " + tipo.cor;
+      iconeLista.textContent = tipo.icone;
+      informacoes.className = "building-row-info";
+      nome.textContent = item.name;
+      local.textContent = tipo.nome + " · Lote " + (item.row + 1) + ", " + (item.col + 1);
+      informacoes.append(nome, local);
+
+      status.className = "status-dot status-" + item.status;
+      botaoLista.append(iconeLista, informacoes, status);
+      linha.append(botaoLista);
+      listaDeConstrucoes.append(linha);
+
+      let construcao = document.createElement("button");
+      let iconeMapa = document.createElement("span");
+      let nomeMapa = document.createElement("span");
+
+      construcao.type = "button";
+      construcao.className = "placed placed-" + tipo.cor;
+      construcao.dataset.id = item.id;
+      construcao.draggable = true;
+      construcao.style.left = ((item.col + 0.5) / COLUNAS * 100) + "%";
+      construcao.style.top = ((item.row + 0.5) / LINHAS * 100) + "%";
+      construcao.setAttribute("aria-label", item.name + ", toque para ver detalhes ou arraste para mover.");
+
+      iconeMapa.className = "placed-icon";
+      iconeMapa.textContent = tipo.icone;
+      nomeMapa.className = "placed-label";
+      nomeMapa.textContent = item.name;
+      construcao.append(iconeMapa, nomeMapa);
+      mapaDeConstrucoes.append(construcao);
+    }
+
+    let total = cidade.buildings.length;
+    document.getElementById("count").textContent = total + (total === 1 ? " item" : " itens");
+    document.getElementById("mapCount").textContent = total;
+    document.getElementById("emptyList").hidden = construcoesVisiveis.length > 0;
+
+    mostrarLotes();
+  }
+
+  function selecionarTipo(id) {
+    tipoSelecionado = id;
+    modoRemover = false;
+    document.getElementById("removeMode").setAttribute("aria-pressed", "false");
+    document.getElementById("removeMode").classList.remove("active");
+    atualizarTipoSelecionado();
+    mostrarMensagem(procurarTipo(id).nome + " selecionada. Escolha um lote livre.");
+    fecharMenu();
+  }
+
+  function colocarConstrucao(tipo, linha, coluna) {
+    if (loteOcupado(linha, coluna, "")) {
+      mostrarMensagem("Esse lote já está ocupado. Escolha um espaço livre.");
+      return;
+    }
+
+    let quantidade = 0;
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      if (cidade.buildings[i].type === tipo) {
+        quantidade++;
+      }
+    }
+
+    let novaConstrucao = {
+      id: String(Date.now()) + String(Math.floor(Math.random() * 1000)),
+      type: tipo,
+      row: linha,
+      col: coluna,
+      name: procurarTipo(tipo).nome + " " + (quantidade + 1),
+      notes: "",
+      status: "planned",
+      createdAt: new Date().toISOString()
+    };
+
+    cidade.buildings.push(novaConstrucao);
+    salvarCidade();
+    mostrarConstrucoes();
+    mostrarMensagem(novaConstrucao.name + " adicionada. Toque nela para editar os detalhes.");
+  }
+
+  function moverConstrucao(id, linha, coluna) {
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      let item = cidade.buildings[i];
+
+      if (item.id === id) {
+        if (loteOcupado(linha, coluna, id)) {
+          mostrarMensagem("Esse lote já está ocupado. A construção não foi movida.");
+          return;
+        }
+
+        item.row = linha;
+        item.col = coluna;
+        item.updatedAt = new Date().toISOString();
+        salvarCidade();
+        mostrarConstrucoes();
+        mostrarMensagem(item.name + " movida para outro lote.");
+        return;
+      }
+    }
+  }
+
+  function abrirDetalhes(id) {
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      let item = cidade.buildings[i];
+
+      if (item.id === id) {
+        idSelecionado = id;
+        let tipo = procurarTipo(item.type);
+
+        document.getElementById("dialogTitle").textContent = tipo.icone + " " + item.name;
+        document.getElementById("dialogLocation").textContent =
+          tipo.nome + " · Lote " + (item.row + 1) + ", " + (item.col + 1);
+        campoNome.value = item.name;
+        campoStatus.value = item.status;
+        campoObservacoes.value = item.notes;
+        janelaDetalhes.showModal();
+        return;
+      }
+    }
+  }
+
+  function fecharDetalhes() {
+    janelaDetalhes.close();
+    idSelecionado = "";
+  }
+
+  function excluirConstrucao() {
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      if (cidade.buildings[i].id === idSelecionado) {
+        let nome = cidade.buildings[i].name;
+        cidade.buildings.splice(i, 1);
+        salvarCidade();
+        mostrarConstrucoes();
+        fecharDetalhes();
+        mostrarMensagem(nome + " foi removida da cidade.");
+        return;
+      }
+    }
+  }
+
+  function salvarEdicao(evento) {
+    evento.preventDefault();
+
+    for (let i = 0; i < cidade.buildings.length; i++) {
+      let item = cidade.buildings[i];
+
+      if (item.id === idSelecionado) {
+        let novoNome = campoNome.value.trim();
+
+        if (novoNome === "") {
+          campoNome.setCustomValidity("Informe um nome.");
+          campoNome.reportValidity();
+          return;
+        }
+
+        campoNome.setCustomValidity("");
+        item.name = novoNome;
+        item.status = campoStatus.value;
+        item.notes = campoObservacoes.value.trim();
+        item.updatedAt = new Date().toISOString();
+        salvarCidade();
+        mostrarConstrucoes();
+        fecharDetalhes();
+        mostrarMensagem(novoNome + " atualizado.");
+        return;
+      }
+    }
+  }
+
+  function configurarZoom(novoZoom) {
+    if (novoZoom < 0.65) novoZoom = 0.65;
+    if (novoZoom > 1.12) novoZoom = 1.12;
+    zoom = novoZoom;
+    document.documentElement.style.setProperty("--map-zoom", zoom);
+    document.getElementById("zoomLabel").textContent = Math.round(zoom * 100) + "%";
+  }
+
+  function abrirMenu() {
+    document.getElementById("sidebar").classList.add("open");
+    document.getElementById("overlay").classList.add("show");
+  }
+
+  function fecharMenu() {
+    document.getElementById("sidebar").classList.remove("open");
+    document.getElementById("overlay").classList.remove("show");
+  }
+
+  // Consulta uma cidade e depois busca o clima atual daquela localização.
+  async function consultarClima(evento) {
+    evento.preventDefault();
+
+    let nomeCidade = document.getElementById("cityInput").value.trim();
+    let resultadoClima = document.getElementById("weatherResult");
+    let botaoClima = document.getElementById("weatherButton");
+
+    if (nomeCidade.length < 2) {
+      resultadoClima.textContent = "Digite o nome de uma cidade.";
+      return;
+    }
+
+    botaoClima.disabled = true;
+    resultadoClima.textContent = "Consultando o clima...";
+
+    try {
+      let enderecoBusca = "https://geocoding-api.open-meteo.com/v1/search?name=" +
+        encodeURIComponent(nomeCidade) + "&count=1&language=pt&countryCode=BR&format=json";
+      let respostaCidade = await fetch(enderecoBusca);
+      let dadosCidade = await respostaCidade.json();
+
+      if (!dadosCidade.results || dadosCidade.results.length === 0) {
+        resultadoClima.textContent = "Não encontrei essa cidade. Confira o nome.";
+        botaoClima.disabled = false;
+        return;
+      }
+
+      let local = dadosCidade.results[0];
+      let enderecoClima = "https://api.open-meteo.com/v1/forecast?latitude=" +
+        local.latitude + "&longitude=" + local.longitude +
+        "&current=temperature_2m,precipitation,weather_code,wind_speed_10m&timezone=auto";
+      let respostaClima = await fetch(enderecoClima);
+      let dadosClima = await respostaClima.json();
+      let climaAtual = dadosClima.current;
+
+      cidade.weatherCity = {
+        name: local.name + ", " + (local.admin1 || "") + ", " + local.country,
+        temperature: climaAtual.temperature_2m,
+        precipitation: climaAtual.precipitation,
+        windSpeed: climaAtual.wind_speed_10m,
+        checkedAt: new Date().toISOString()
+      };
+
+      salvarCidade();
+      mostrarClima();
+      mostrarMensagem("Clima atualizado para " + local.name + ".");
+    } catch (erro) {
+      resultadoClima.textContent = "Não consegui consultar. Confira sua conexão e tente novamente.";
+    }
+
+    botaoClima.disabled = false;
+  }
+
+  function mostrarClima() {
+    if (cidade.weatherCity === null) return;
+
+    let clima = cidade.weatherCity;
+    let temperatura = Number(clima.temperature);
+    let chuva = Number(clima.precipitation);
+    let vento = Number(clima.windSpeed);
+
+    document.getElementById("cityInput").value = clima.name.split(",")[0];
+    document.getElementById("weatherResult").textContent =
+      clima.name + ": " + temperatura + " °C · chuva " + chuva + " mm · vento " + vento + " km/h";
+
+    if (vento >= 30) {
+      document.getElementById("weatherAdvice").textContent =
+        "Ventos fortes: mantenha ruas acessíveis e priorize os serviços de emergência.";
+    } else if (chuva >= 1) {
+      document.getElementById("weatherAdvice").textContent =
+        "Chuva: planeje ruas e mantenha hospital e bombeiros conectados.";
+    } else if (temperatura >= 28) {
+      document.getElementById("weatherAdvice").textContent =
+        "Calor ou tempo seco: priorize árvores e parques para criar sombra.";
+    } else {
+      document.getElementById("weatherAdvice").textContent =
+        "Clima ameno: equilibre moradias, serviços e áreas verdes.";
+    }
+  }
+
+  // Clique na construção do menu seleciona a peça.
+  catalogo.addEventListener("click", function (evento) {
+    let botao = evento.target.closest(".piece");
+    if (botao) selecionarTipo(botao.dataset.type);
   });
 
-  ui.buildings.addEventListener('click', (event) => {
-    const placed = event.target.closest('.placed');
-    if (!placed) return;
-    if (removeMode) { openDetails(placed.dataset.id); return; }
-    openDetails(placed.dataset.id);
+  // Arrastar uma peça do menu para o mapa.
+  catalogo.addEventListener("dragstart", function (evento) {
+    let botao = evento.target.closest(".piece");
+    if (botao === null) return;
+    tipoArrastado = botao.dataset.type;
+    evento.dataTransfer.setData("text/plain", tipoArrastado);
   });
-  ui.buildings.addEventListener('dragstart', (event) => {
-    const placed = event.target.closest('.placed');
-    if (!placed || !event.dataTransfer) return;
-    draggedBuildingId = placed.dataset.id;
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('application/x-dragcit-building', draggedBuildingId);
-  });
-  ui.buildings.addEventListener('dragend', () => { draggedBuildingId = null; });
-  ui.list.addEventListener('click', (event) => {
-    const button = event.target.closest('.building-row');
-    if (button) openDetails(button.dataset.id);
-  });
-  ui.search.addEventListener('input', renderBuildings);
-  ui.filter.addEventListener('change', renderBuildings);
-  ui.sort.addEventListener('change', renderBuildings);
-  ui.form.addEventListener('submit', saveBuilding);
-  ui.name.addEventListener('input', () => ui.name.setCustomValidity(''));
-  byId('closeDialog').addEventListener('click', closeDetails);
-  byId('deleteBuilding').addEventListener('click', () => {
-    if (selectedBuildingId) deleteBuilding(selectedBuildingId);
-  });
-  ui.dialog.addEventListener('click', (event) => {
-    if (event.target === ui.dialog) closeDetails();
-  });
-  ui.removeMode.addEventListener('click', () => {
-    removeMode = !removeMode;
-    ui.removeMode.setAttribute('aria-pressed', String(removeMode));
-    ui.removeMode.classList.toggle('active', removeMode);
-    updateSelectedPiece();
-    announce(removeMode ? 'Modo de remoção ativo. Abra uma construção e use Excluir para confirmar.' : 'Modo de construção ativo.');
-  });
-  byId('save').addEventListener('click', () => {
-    if (persist()) announce('Sua cidade foi salva neste navegador.');
-  });
-  byId('clear').addEventListener('click', () => {
-    if (city.buildings.length === 0) { announce('A cidade já está vazia.'); return; }
-    if (!window.confirm('Limpar todas as construções desta cidade? Essa ação não pode ser desfeita.')) return;
-    city.buildings = [];
-    persist(); renderBuildings(); announce('Cidade limpa. Você pode começar uma nova construção.');
-  });
-  byId('openMenu').addEventListener('click', openMenu);
-  byId('closeMenu').addEventListener('click', closeMenu);
-  ui.overlay.addEventListener('click', closeMenu);
-  byId('zoomIn').addEventListener('click', () => setZoom(zoom + 0.08));
-  byId('zoomOut').addEventListener('click', () => setZoom(zoom - 0.08));
-  byId('resetZoom').addEventListener('click', () => setZoom(0.86));
-  byId('weatherForm').addEventListener('submit', fetchWeather);
 
-  renderCatalog();
-  renderBuildings();
-  setZoom(zoom);
-  renderWeather();
+  mapaDeLotes.addEventListener("click", function (evento) {
+    let lote = evento.target.closest(".tile");
+    if (lote === null) return;
+
+    if (modoRemover) {
+      mostrarMensagem("Abra uma construção e escolha Excluir nos detalhes.");
+    } else {
+      colocarConstrucao(tipoSelecionado, Number(lote.dataset.row), Number(lote.dataset.col));
+    }
+  });
+
+  mapaDeLotes.addEventListener("dragover", function (evento) {
+    if (evento.target.closest(".tile")) evento.preventDefault();
+  });
+
+  mapaDeLotes.addEventListener("drop", function (evento) {
+    let lote = evento.target.closest(".tile");
+    if (lote === null) return;
+    evento.preventDefault();
+
+    let id = evento.dataTransfer.getData("application/x-dragcit-building");
+    let linha = Number(lote.dataset.row);
+    let coluna = Number(lote.dataset.col);
+
+    if (id !== "") {
+      moverConstrucao(id, linha, coluna);
+    } else if (tipoArrastado !== "") {
+      colocarConstrucao(tipoArrastado, linha, coluna);
+    }
+  });
+
+  mapaDeConstrucoes.addEventListener("click", function (evento) {
+    let botao = evento.target.closest(".placed");
+    if (botao) abrirDetalhes(botao.dataset.id);
+  });
+
+  mapaDeConstrucoes.addEventListener("dragstart", function (evento) {
+    let botao = evento.target.closest(".placed");
+    if (botao === null) return;
+    construcaoArrastada = botao.dataset.id;
+    evento.dataTransfer.setData("application/x-dragcit-building", construcaoArrastada);
+  });
+
+  listaDeConstrucoes.addEventListener("click", function (evento) {
+    let botao = evento.target.closest(".building-row");
+    if (botao) abrirDetalhes(botao.dataset.id);
+  });
+
+  busca.addEventListener("input", mostrarConstrucoes);
+  filtro.addEventListener("change", mostrarConstrucoes);
+  ordenacao.addEventListener("change", mostrarConstrucoes);
+  formularioDetalhes.addEventListener("submit", salvarEdicao);
+  campoNome.addEventListener("input", function () {
+    campoNome.setCustomValidity("");
+  });
+
+  document.getElementById("closeDialog").addEventListener("click", fecharDetalhes);
+  document.getElementById("deleteBuilding").addEventListener("click", excluirConstrucao);
+
+  document.getElementById("removeMode").addEventListener("click", function () {
+    modoRemover = !modoRemover;
+    document.getElementById("removeMode").setAttribute("aria-pressed", modoRemover);
+    document.getElementById("removeMode").classList.toggle("active", modoRemover);
+    atualizarTipoSelecionado();
+  });
+
+  document.getElementById("save").addEventListener("click", salvarCidade);
+  document.getElementById("clear").addEventListener("click", function () {
+    if (cidade.buildings.length === 0) {
+      mostrarMensagem("A cidade já está vazia.");
+      return;
+    }
+
+    if (confirm("Limpar todas as construções da cidade?")) {
+      cidade.buildings = [];
+      salvarCidade();
+      mostrarConstrucoes();
+      mostrarMensagem("Cidade limpa. Comece uma nova construção!");
+    }
+  });
+
+  document.getElementById("openMenu").addEventListener("click", abrirMenu);
+  document.getElementById("closeMenu").addEventListener("click", fecharMenu);
+  document.getElementById("overlay").addEventListener("click", fecharMenu);
+  document.getElementById("zoomIn").addEventListener("click", function () {
+    configurarZoom(zoom + 0.08);
+  });
+  document.getElementById("zoomOut").addEventListener("click", function () {
+    configurarZoom(zoom - 0.08);
+  });
+  document.getElementById("resetZoom").addEventListener("click", function () {
+    configurarZoom(0.86);
+  });
+  document.getElementById("weatherForm").addEventListener("submit", consultarClima);
+
+  // Mostra tudo que estava salvo quando o jogo abre.
+  mostrarCatalogo();
+  mostrarConstrucoes();
+  configurarZoom(zoom);
+  mostrarClima();
 })();
