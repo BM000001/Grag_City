@@ -27,6 +27,8 @@ const janela = document.getElementById("buildingDialog");
 
 let cidade = carregarCidade();
 let tipoSelecionado = "house";
+let temaCeu = cidade.sky || (cidade.weatherCity && cidade.weatherCity.isDay === 0 ? "night" : "day");
+let temaManual = cidade.sky !== undefined && cidade.sky !== null;
 let construcaoAtual = null;
 let formularioNovo = false;
 let tipoArrastado = "";
@@ -458,6 +460,22 @@ function fecharMenu() {
   document.getElementById("overlay").classList.remove("show");
 }
 
+function aplicarTema() {
+  let viewport = document.getElementById("viewport");
+  let botao = document.getElementById("toggleSky");
+  viewport.classList.toggle("night", temaCeu === "night");
+  botao.textContent = temaCeu === "day" ? "Céu: Dia" : "Céu: Noite";
+  botao.setAttribute("aria-pressed", String(temaCeu === "night"));
+}
+
+function alternarTema() {
+  temaCeu = temaCeu === "day" ? "night" : "day";
+  temaManual = true;
+  cidade.sky = temaCeu;
+  salvarCidade();
+  aplicarTema();
+}
+
 // Consulta cidade e previsão atual pela API pública Open-Meteo.
 async function consultarClima(evento) {
   evento.preventDefault();
@@ -491,8 +509,14 @@ async function consultarClima(evento) {
       name: local.name + ", " + (local.admin1 || "") + ", " + local.country,
       temperature: dadosClima.current.temperature_2m,
       precipitation: dadosClima.current.precipitation,
-      windSpeed: dadosClima.current.wind_speed_10m
+      windSpeed: dadosClima.current.wind_speed_10m,
+      isDay: dadosClima.current.is_day
     };
+    if (!temaManual) {
+      temaCeu = dadosClima.current.is_day === 1 ? "day" : "night";
+      cidade.sky = temaCeu;
+      aplicarTema();
+    }
     salvarCidade();
     mostrarClima();
     mostrarMensagem("Clima atualizado para " + local.name + ".");
@@ -639,6 +663,7 @@ document.getElementById("removeMode").addEventListener("click", function () {
 });
 
 document.getElementById("save").addEventListener("click", salvarCidade);
+document.getElementById("toggleSky").addEventListener("click", alternarTema);
 document.getElementById("clear").addEventListener("click", function () {
   if (cidade.buildings.length === 0) {
     mostrarMensagem("A cidade já está vazia.");
@@ -668,4 +693,5 @@ document.getElementById("weatherForm").addEventListener("submit", consultarClima
 mostrarCatalogo();
 mostrarConstrucoes();
 configurarZoom(zoom);
+aplicarTema();
 mostrarClima();
