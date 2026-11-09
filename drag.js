@@ -1,4 +1,3 @@
-(() => {
   // Dados principais do jogo
   const LINHAS = 8;
   const COLUNAS = 12;
@@ -38,8 +37,6 @@
   let tipoSelecionado = "house";
   let idSelecionado = "";
   let modoRemover = false;
-  let tipoArrastado = "";
-  let construcaoArrastada = "";
   let zoom = 0.86;
 
   // Procura os dados salvos para continuar a cidade depois de fechar a página.
@@ -61,13 +58,23 @@
 
         if (item.row === undefined) {
           item.row = converterPosicao(item.y, LINHAS);
+        } else {
+          item.row = Number(item.row);
         }
         if (item.col === undefined) {
           item.col = converterPosicao(item.x, COLUNAS);
+        } else {
+          item.col = Number(item.col);
         }
 
         if (item.id === undefined) {
           item.id = String(Date.now() + i);
+        } else {
+          item.id = String(item.id);
+        }
+
+        if (procurarTipo(item.type).id !== item.type) {
+          item.type = "house";
         }
         if (item.name === undefined) {
           item.name = procurarTipo(item.type).nome + " " + (i + 1);
@@ -587,8 +594,7 @@
   catalogo.addEventListener("dragstart", function (evento) {
     let botao = evento.target.closest(".piece");
     if (botao === null) return;
-    tipoArrastado = botao.dataset.type;
-    evento.dataTransfer.setData("text/plain", tipoArrastado);
+    evento.dataTransfer.setData("text/plain", botao.dataset.type);
   });
 
   mapaDeLotes.addEventListener("click", function (evento) {
@@ -615,10 +621,12 @@
     let linha = Number(lote.dataset.row);
     let coluna = Number(lote.dataset.col);
 
+    let tipo = evento.dataTransfer.getData("text/plain");
+
     if (id !== "") {
       moverConstrucao(id, linha, coluna);
-    } else if (tipoArrastado !== "") {
-      colocarConstrucao(tipoArrastado, linha, coluna);
+    } else if (tipo !== "") {
+      colocarConstrucao(tipo, linha, coluna);
     }
   });
 
@@ -630,8 +638,7 @@
   mapaDeConstrucoes.addEventListener("dragstart", function (evento) {
     let botao = evento.target.closest(".placed");
     if (botao === null) return;
-    construcaoArrastada = botao.dataset.id;
-    evento.dataTransfer.setData("application/x-dragcit-building", construcaoArrastada);
+    evento.dataTransfer.setData("application/x-dragcit-building", botao.dataset.id);
   });
 
   listaDeConstrucoes.addEventListener("click", function (evento) {
@@ -691,4 +698,3 @@
   mostrarConstrucoes();
   configurarZoom(zoom);
   mostrarClima();
-})();
