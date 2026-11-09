@@ -1101,6 +1101,78 @@ a:focus-visible {
 .viewport.night .tile.occupied { background:rgba(162,180,105,.20); }
 .viewport.night .map-heading b { color:#d9e4d6; }
 .viewport.night .legend,.viewport.night .map-controls { box-shadow:0 2px 10px #101b3390; }
+
+/* Efeitos visuais atualizados com o clima consultado na API */
+.viewport.weather-cloudy::before {
+  content: "";
+  position: absolute;
+  top: 4%;
+  left: -5%;
+  z-index: 3;
+  width: 110%;
+  height: 30%;
+  pointer-events: none;
+  opacity: .88;
+  background:
+    radial-gradient(ellipse at 16% 74%, #fff 0 7%, transparent 7.5%),
+    radial-gradient(ellipse at 22% 64%, #fff 0 10%, transparent 10.5%),
+    radial-gradient(ellipse at 29% 74%, #fff 0 8%, transparent 8.5%),
+    radial-gradient(ellipse at 57% 60%, #fff 0 10%, transparent 10.5%),
+    radial-gradient(ellipse at 65% 72%, #fff 0 8%, transparent 8.5%),
+    radial-gradient(ellipse at 72% 62%, #fff 0 11%, transparent 11.5%);
+  animation: nuvens-passando 32s ease-in-out infinite alternate;
+}
+
+.viewport.night.weather-cloudy::before {
+  opacity: .58;
+  filter: brightness(.72) saturate(.75);
+}
+
+.viewport.weather-rain::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: 4;
+  pointer-events: none;
+  opacity: .48;
+  background: repeating-linear-gradient(
+    105deg,
+    transparent 0 15px,
+    rgba(211, 231, 255, .85) 16px 17px,
+    transparent 18px 29px
+  );
+  animation: chuva-caindo .5s linear infinite;
+}
+
+.viewport.weather-rain {
+  background-color: #9baeb9;
+  background-image: linear-gradient(180deg, rgba(80, 104, 125, .18), rgba(39, 60, 78, .18));
+}
+
+.viewport.night.weather-rain {
+  background-image: linear-gradient(180deg, rgba(12, 24, 47, .32), rgba(31, 46, 67, .38));
+}
+
+.map-controls,
+.legend {
+  position: relative;
+  z-index: 6;
+}
+
+@keyframes chuva-caindo {
+  to { background-position: -18px 45px; }
+}
+
+@keyframes nuvens-passando {
+  to { transform: translateX(3%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport.weather-cloudy::before,
+  .viewport.weather-rain::after {
+    animation: none;
+  }
+}
 @media(max-width:680px) {
   .island { width:96%; aspect-ratio:1.03 / 1; border-width:7px; border-radius:17px; }
   .viewport { min-height:54vh; }
