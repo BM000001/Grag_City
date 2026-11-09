@@ -65,7 +65,7 @@ function carregarCidade() {
       }
     }
 
-    return { buildings: construcoes, weatherCity: dados.weatherCity || null };
+    return { buildings: construcoes, weatherCity: dados.weatherCity || null, sky: dados.sky || null };
   } catch (erro) {
     return { buildings: [], weatherCity: null };
   }
