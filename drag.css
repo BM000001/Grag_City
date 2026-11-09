@@ -1014,7 +1014,7 @@ a:focus-visible {
 .art-road .art-sign { display:none; }
 .piece .building-art { width:78%; height:82%; }
 .placed { padding:0; overflow:visible; background:transparent; border:0; }
-.placed > .building-art { width:86%; height:78%; filter:drop-shadow(2px 4px 0 #587e50); transform:skewX(30deg) rotate(-30deg); }
+.placed > .building-art { width:86%; height:78%; filter:drop-shadow(2px 4px 0 #587e50); transform:none; }
 .placed-label { bottom:-8%; max-width:130%; padding:2px 4px; color:#203c30; background:#fffef3ed; border:1px solid #d7e2d1; border-radius:4px; font-size:clamp(6px,.8vw,9px); font-weight:800; }
 .type-marker { display:grid; flex:0 0 30px; place-items:center; width:30px; height:30px; color:#fff; background:var(--green); border-radius:8px; font-size:12px; font-weight:900; }
 .building-dialog { width:min(470px,calc(100vw - 24px)); max-height:calc(100vh - 24px); padding:20px; overflow-y:auto; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:0 24px 70px #142c2166; }
