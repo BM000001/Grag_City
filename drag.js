@@ -28,7 +28,7 @@ const janela = document.getElementById("buildingDialog");
 let cidade = carregarCidade();
 let tipoSelecionado = "house";
 let temaCeu = cidade.sky || (cidade.weatherCity && cidade.weatherCity.isDay === 0 ? "night" : "day");
-let temaManual = cidade.sky !== undefined && cidade.sky !== null;
+let temaManual = cidade.skyManual === true;
 let construcaoAtual = null;
 let formularioNovo = false;
 let tipoArrastado = "";
@@ -65,7 +65,7 @@ function carregarCidade() {
       }
     }
 
-    return { buildings: construcoes, weatherCity: dados.weatherCity || null, sky: dados.sky || null };
+    return { buildings: construcoes, weatherCity: dados.weatherCity || null, sky: dados.sky || null, skyManual: dados.skyManual === true };
   } catch (erro) {
     return { buildings: [], weatherCity: null };
   }
@@ -466,6 +466,7 @@ function aplicarTema() {
   viewport.classList.toggle("night", temaCeu === "night");
   botao.textContent = temaCeu === "day" ? "Céu: Dia" : "Céu: Noite";
   botao.setAttribute("aria-pressed", String(temaCeu === "night"));
+  document.getElementById("autoSky").setAttribute("aria-pressed", String(!temaManual));
 }
 
 function aplicarClimaNoMapa() {
@@ -491,6 +492,16 @@ function aplicarClimaNoMapa() {
 function alternarTema() {
   temaCeu = temaCeu === "day" ? "night" : "day";
   temaManual = true;
+  cidade.skyManual = true;
+  cidade.sky = temaCeu;
+  salvarCidade();
+  aplicarTema();
+}
+
+function usarCeuAutomatico() {
+  temaManual = false;
+  cidade.skyManual = false;
+  temaCeu = cidade.weatherCity && Number(cidade.weatherCity.isDay) === 0 ? "night" : "day";
   cidade.sky = temaCeu;
   salvarCidade();
   aplicarTema();
@@ -687,6 +698,7 @@ document.getElementById("removeMode").addEventListener("click", function () {
 
 document.getElementById("save").addEventListener("click", salvarCidade);
 document.getElementById("toggleSky").addEventListener("click", alternarTema);
+document.getElementById("autoSky").addEventListener("click", usarCeuAutomatico);
 document.getElementById("clear").addEventListener("click", function () {
   if (cidade.buildings.length === 0) {
     mostrarMensagem("A cidade já está vazia.");
