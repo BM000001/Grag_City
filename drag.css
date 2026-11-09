@@ -1319,3 +1319,17 @@ a:focus-visible {
 }
 .art-town-hall .art-window.window-two { display: none; }
 .art-town-hall .art-door { height: 32%; }
+
+
+/* Destaque visual do modo de remoção */
+.viewport.remove-mode .placed {
+  cursor: pointer;
+}
+
+.viewport.remove-mode .placed .sprite {
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px #c84035);
+}
+
+.viewport.remove-mode .placed:hover .sprite {
+  transform: scale(1.08);
+}
