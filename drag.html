@@ -17,7 +17,7 @@
     <div class="side-content">
       <p class="kicker">MODO CONSTRUÇÃO</p>
       <h1>Monte sua cidade</h1>
-      <p class="intro">Escolha uma construção e toque em um lote, ou arraste a peça para o mapa. Toque em uma construção para ver e editar os detalhes.</p>
+      <p class="intro">Escolha uma construção e toque em um lote, ou arraste a peça para o mapa. Ao colocar uma construção, você poderá dar um nome e escolher a cor.</p>
 
       <section aria-labelledby="catalogHeading">
         <h2 class="catalog-title" id="catalogHeading">Construções <small id="pieceCount">0 peças</small></h2>
@@ -27,7 +27,7 @@
       <section class="placed-panel" aria-labelledby="placedHeading">
         <h2 class="catalog-title" id="placedHeading">Na cidade <small id="count">0 itens</small></h2>
         <label class="field-label" for="searchBuildings">Pesquisar</label>
-        <input id="searchBuildings" class="control-input" type="search" placeholder="Nome ou observação" autocomplete="off">
+        <input id="searchBuildings" class="control-input" type="search" placeholder="Nome, endereço ou informação">
         <div class="filter-row">
           <label class="filter-field"><span>Tipo</span>
             <select id="filterType" class="control-input"><option value="all">Todos</option></select>
@@ -58,9 +58,9 @@
         <p id="weatherAdvice" class="weather-advice">O clima ajuda a planejar áreas verdes e serviços.</p>
         <small class="weather-credit">Clima por <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> · localidades por <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">GeoNames</a></small>
       </section>
-      <p class="tip">✦ <span><b>Dica:</b> no computador, arraste; no celular, selecione a peça e toque no terreno.</span></p>
+      <p class="tip"><span><b>Dica:</b> arraste no computador ou selecione uma peça e toque no mapa pelo celular.</span></p>
     </div>
-    <div class="side-foot">🟢 SUA CIDADE, SUAS REGRAS</div>
+    <div class="side-foot">SUA CIDADE, SUAS REGRAS</div>
   </aside>
 
   <div class="overlay" id="overlay"></div>
@@ -72,12 +72,12 @@
       </div>
       <div class="actions">
         <span id="saveStatus" role="status" aria-live="polite">Salvo automaticamente</span>
-        <button id="removeMode" class="tool secondary" type="button" aria-pressed="false">⌫ <span>Remover</span></button>
-        <button id="save" class="tool primary" type="button">▣ <span>Salvar</span></button>
+        <button id="removeMode" class="tool secondary" type="button" aria-pressed="false">Remover</button>
+        <button id="save" class="tool primary" type="button">Salvar</button>
       </div>
     </header>
     <section class="game" aria-label="Construtor de cidade">
-      <div class="map-heading"><b>🟢 TERRENO DE CONSTRUÇÃO</b><span id="hint">Selecione uma peça e coloque no mapa</span></div>
+      <div class="map-heading"><b>TERRENO DE CONSTRUÇÃO</b><span id="hint">Selecione uma peça e coloque no mapa</span></div>
       <div class="viewport" id="viewport">
         <div class="island-shadow" aria-hidden="true"></div>
         <div class="island" id="map" aria-label="Mapa isométrico da cidade">
@@ -89,7 +89,7 @@
           <button id="zoomIn" type="button" aria-label="Aumentar zoom">+</button>
           <button id="resetZoom" type="button" aria-label="Restaurar zoom">↺</button>
         </div>
-        <div class="legend">▦ Lotes livres para construção</div>
+        <div class="legend">Lotes livres para construção</div>
       </div>
       <div class="bottom">
         <div class="stat"><span>⌂</span><div><b id="mapCount">0</b><small>construções</small></div></div>
@@ -101,18 +101,51 @@
 </div>
 
 <dialog id="buildingDialog" class="building-dialog" aria-labelledby="dialogTitle">
-  <form id="buildingForm" method="dialog">
-    <div class="dialog-head"><div><p class="kicker">DETALHES DO LOTE</p><h2 id="dialogTitle">Construção</h2></div><button id="closeDialog" class="icon dialog-close" type="button" aria-label="Fechar detalhes">×</button></div>
-    <p id="dialogLocation" class="dialog-location"></p>
+  <section id="insideView" class="inside-view" hidden>
+    <div class="dialog-head">
+      <div><p class="kicker">VOCÊ ENTROU EM</p><h2 id="dialogTitle">Construção</h2></div>
+      <button id="closeDialog" class="icon dialog-close" type="button" aria-label="Voltar à cidade">×</button>
+    </div>
+    <div class="room-scene" aria-label="Interior da construção">
+      <div class="room-window"></div>
+      <div class="room-shelf"></div>
+      <div class="room-floor"></div>
+      <div id="interiorDrawing" class="interior-drawing"></div>
+    </div>
+    <p id="insideMessage" class="inside-message"></p>
+    <dl class="building-info">
+      <div><dt>Endereço</dt><dd id="insideAddress"></dd></div>
+      <div><dt>Situação</dt><dd id="insideStatus"></dd></div>
+      <div><dt>Informações</dt><dd id="insideNotes"></dd></div>
+    </dl>
+    <div class="dialog-actions">
+      <button id="deleteBuilding" class="tool danger" type="button">Excluir</button>
+      <button id="editBuilding" class="tool primary" type="button">Editar informações</button>
+    </div>
+  </section>
+
+  <form id="buildingForm" class="building-form" hidden>
+    <div class="dialog-head">
+      <div><p class="kicker" id="formKicker">NOVA CONSTRUÇÃO</p><h2 id="formTitle">Personalize sua construção</h2></div>
+      <button id="cancelForm" class="icon dialog-close" type="button" aria-label="Cancelar">×</button>
+    </div>
+    <p id="formLocation" class="dialog-location"></p>
     <label class="field-label" for="buildingName">Nome</label>
-    <input id="buildingName" class="control-input" name="name" maxlength="40" required>
+    <input id="buildingName" class="control-input" maxlength="40" placeholder="Ex.: Casa da família" required>
+    <label class="field-label" for="buildingAddress">Endereço</label>
+    <input id="buildingAddress" class="control-input" maxlength="80" placeholder="Ex.: Rua das Flores, 25" required>
+    <label class="field-label" for="buildingColor">Cor da construção</label>
+    <input id="buildingColor" class="color-input" type="color" value="#c85e4d">
     <label class="field-label" for="buildingStatus">Situação</label>
-    <select id="buildingStatus" class="control-input" name="status">
+    <select id="buildingStatus" class="control-input">
       <option value="planned">Planejada</option><option value="building">Em construção</option><option value="ready">Concluída</option>
     </select>
-    <label class="field-label" for="buildingNotes">Observações</label>
-    <textarea id="buildingNotes" class="control-input" name="notes" rows="3" maxlength="240" placeholder="Ex.: perto do parque, rua principal..."></textarea>
-    <div class="dialog-actions"><button id="deleteBuilding" class="tool danger" type="button">Excluir</button><button class="tool primary" type="submit">Salvar alterações</button></div>
+    <label class="field-label" for="buildingNotes">Informações</label>
+    <textarea id="buildingNotes" class="control-input" rows="3" maxlength="240" placeholder="Ex.: dois quartos, jardim, moradores..."></textarea>
+    <div class="dialog-actions">
+      <button id="cancelFormButton" class="tool secondary" type="button">Cancelar</button>
+      <button class="tool primary" type="submit">Salvar construção</button>
+    </div>
   </form>
 </dialog>
 <script src="drag.js" defer></script>
