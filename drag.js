@@ -202,7 +202,35 @@ function atualizarTipoSelecionado() {
   }
 
   let aviso = document.getElementById("hint");
-  aviso.textContent = "Peça selecionada: " + buscarTipo(tipoSelecionado).nome + ". Toque em um lote ou arraste até ele.";
+  if (document.getElementById("removeMode").getAttribute("aria-pressed") === "true") {
+    aviso.textContent = "Clique em uma construção no mapa para removê-la.";
+  } else {
+    aviso.textContent = "Peça selecionada: " + buscarTipo(tipoSelecionado).nome + ". Toque em um lote ou arraste até ele.";
+  }
+}
+
+function alterarModoRemocao(ativo) {
+  let botao = document.getElementById("removeMode");
+  botao.setAttribute("aria-pressed", String(ativo));
+  botao.classList.toggle("active", ativo);
+  botao.textContent = ativo ? "Cancelar remoção" : "Remover";
+  document.getElementById("viewport").classList.toggle("remove-mode", ativo);
+  atualizarTipoSelecionado();
+}
+
+function removerDoMapa(id) {
+  for (let i = 0; i < cidade.buildings.length; i++) {
+    if (cidade.buildings[i].id === id) {
+      let nome = cidade.buildings[i].name;
+      if (!confirm("Remover " + nome + " da cidade?")) return;
+
+      cidade.buildings.splice(i, 1);
+      salvarCidade();
+      mostrarConstrucoes();
+      mostrarMensagem(nome + " foi removida da cidade.");
+      return;
+    }
+  }
 }
 
 function salvarManualmente() {
@@ -451,7 +479,7 @@ function excluirConstrucao() {
 
 function selecionarTipo(tipo) {
   tipoSelecionado = tipo;
-  atualizarTipoSelecionado();
+  alterarModoRemocao(false);
   fecharMenu();
   mostrarMensagem(buscarTipo(tipo).nome + " selecionada. Escolha um lote.");
 }
@@ -617,11 +645,15 @@ mapaDeLotes.addEventListener("click", function (evento) {
   let lote = evento.target.closest(".tile");
   if (lote === null) return;
 
-  prepararConstrucao(
-    tipoSelecionado,
-    Number(lote.dataset.row),
-    Number(lote.dataset.col)
-  );
+  if (document.getElementById("removeMode").getAttribute("aria-pressed") === "true") {
+    mostrarMensagem("Clique em uma construção existente para removê-la.");
+  } else {
+    prepararConstrucao(
+      tipoSelecionado,
+      Number(lote.dataset.row),
+      Number(lote.dataset.col)
+    );
+  }
 });
 
 mapaDeLotes.addEventListener("dragover", function (evento) {
@@ -656,7 +688,13 @@ mapaDeLotes.addEventListener("drop", function (evento) {
 
 mapaDeConstrucoes.addEventListener("click", function (evento) {
   let construcao = evento.target.closest(".placed");
-  if (construcao) entrarNaConstrucao(construcao.dataset.id);
+  if (construcao === null) return;
+
+  if (document.getElementById("removeMode").getAttribute("aria-pressed") === "true") {
+    removerDoMapa(construcao.dataset.id);
+  } else {
+    entrarNaConstrucao(construcao.dataset.id);
+  }
 });
 
 mapaDeConstrucoes.addEventListener("dragstart", function (evento) {
@@ -668,7 +706,13 @@ mapaDeConstrucoes.addEventListener("dragstart", function (evento) {
 
 listaDeConstrucoes.addEventListener("click", function (evento) {
   let botao = evento.target.closest(".building-row");
-  if (botao) entrarNaConstrucao(botao.dataset.id);
+  if (botao === null) return;
+
+  if (document.getElementById("removeMode").getAttribute("aria-pressed") === "true") {
+    removerDoMapa(botao.dataset.id);
+  } else {
+    entrarNaConstrucao(botao.dataset.id);
+  }
 });
 
 document.getElementById("searchBuildings").addEventListener("input", mostrarConstrucoes);
@@ -695,6 +739,17 @@ janela.addEventListener("click", function (evento) {
   if (evento.target === janela) {
     janela.close();
     construcaoAtual = null;
+  }
+});
+
+document.getElementById("removeMode").addEventListener("click", function () {
+  let ativo = document.getElementById("removeMode").getAttribute("aria-pressed") !== "true";
+  alterarModoRemocao(ativo);
+
+  if (ativo) {
+    mostrarMensagem("Modo remoção ativo. Toque numa construção para removê-la.");
+  } else {
+    mostrarMensagem("Modo remoção cancelado.");
   }
 });
 
