@@ -14,6 +14,12 @@ const tiposConstrucao = [
   { id: "tree", nome: "Árvore", descricao: "Área verde", cor: "#398657", abreviacao: "A" },
   { id: "police", nome: "Delegacia", descricao: "Segurança pública", cor: "#5075a8", abreviacao: "D" },
   { id: "fire", nome: "Bombeiros", descricao: "Emergência e resgate", cor: "#c75c3b", abreviacao: "B" },
+  { id: "market", nome: "Mercado", descricao: "Compras e abastecimento", cor: "#62935f", abreviacao: "M" },
+  { id: "pharmacy", nome: "Farmácia", descricao: "Medicamentos e cuidados", cor: "#4f9c86", abreviacao: "+" },
+  { id: "bank", nome: "Banco", descricao: "Serviços financeiros", cor: "#607a9d", abreviacao: "$" },
+  { id: "library", nome: "Biblioteca", descricao: "Leitura e estudo", cor: "#a67a55", abreviacao: "L" },
+  { id: "bus-stop", nome: "Ponto de ônibus", descricao: "Transporte coletivo", cor: "#547f9c", abreviacao: "P" },
+  { id: "town-hall", nome: "Prefeitura", descricao: "Serviços municipais", cor: "#a47c55", abreviacao: "P" },
   { id: "road", nome: "Rua", descricao: "Mobilidade urbana", cor: "#687874", abreviacao: "R" }
 ];
 
