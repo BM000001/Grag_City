@@ -157,7 +157,7 @@
       button.setAttribute('aria-pressed', String(active));
     });
     const type = typeFor(selectedType);
-    ui.hint.textContent = removeMode ? 'Toque em uma construção para removê-la' : `Peça selecionada: ${type.name}. Toque em um lote livre ou arraste até ele.`;
+    ui.hint.textContent = removeMode ? 'Abra a construção e escolha Excluir nos detalhes' : `Peça selecionada: ${type.name}. Toque em um lote livre ou arraste até ele.`;
   }
 
   function renderTiles() {
