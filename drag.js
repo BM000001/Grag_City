@@ -716,4 +716,5 @@ mostrarCatalogo();
 mostrarConstrucoes();
 configurarZoom(zoom);
 aplicarTema();
+aplicarClimaNoMapa();
 mostrarClima();
