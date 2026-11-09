@@ -36,13 +36,39 @@
   let draggedBuildingId = null;
   let draggedType = null;
 
+  function toCell(value, size) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    if (Number.isInteger(number) && number >= 0 && number < size) return number;
+    if (number >= 0 && number <= 1) return Math.min(size - 1, Math.floor(number * size));
+    if (number >= 0 && number <= 100) return Math.min(size - 1, Math.floor((number / 100) * size));
+    return Math.max(0, Math.min(size - 1, Math.round(number)));
+  }
+
+  function normalizeBuilding(item, index) {
+    if (!item || typeof item !== 'object') return null;
+    const type = TYPES.some((entry) => entry.id === item.type) ? item.type : 'house';
+    const row = Number.isInteger(item.row) ? item.row : toCell(item.y, ROWS);
+    const col = Number.isInteger(item.col) ? item.col : toCell(item.x, COLS);
+    return {
+      id: String(item.id ?? `legacy-${index}-${Date.now()}`),
+      type, row, col,
+      name: String(item.name || item.title || `${typeFor(type).name} ${index + 1}`).slice(0, 40),
+      notes: String(item.notes || item.description || '').slice(0, 240),
+      status: ['planned', 'building', 'ready'].includes(item.status) ? item.status : 'planned',
+      createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date().toISOString(),
+      updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
+    };
+  }
+
   function readState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return { version: 1, buildings: [], weatherCity: null };
       const parsed = JSON.parse(raw);
-      const buildings = Array.isArray(parsed.buildings) ? parsed.buildings.filter(isValidBuilding) : [];
-      return { version: 1, buildings, weatherCity: parsed.weatherCity || null };
+      const saved = Array.isArray(parsed) ? parsed : (parsed.buildings || parsed.items || []);
+      const buildings = Array.isArray(saved) ? saved.map(normalizeBuilding).filter(isValidBuilding) : [];
+      return { version: 1, buildings, weatherCity: parsed.weatherCity && typeof parsed.weatherCity === 'object' ? parsed.weatherCity : null };
     } catch (error) {
       return { version: 1, buildings: [], weatherCity: null };
     }
@@ -173,6 +199,7 @@
 
   function renderBuildingCard(item) {
     const type = typeFor(item.type);
+    const listItem = document.createElement('li');
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'building-row';
@@ -190,7 +217,8 @@
     status.className = `status-dot status-${item.status || 'planned'}`;
     status.setAttribute('aria-label', statusLabel(item.status));
     button.append(icon, info, status);
-    return button;
+    listItem.append(button);
+    return listItem;
   }
 
   function statusLabel(status) {
