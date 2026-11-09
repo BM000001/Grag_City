@@ -1176,3 +1176,17 @@ a:focus-visible {
   .island { width:96%; aspect-ratio:1.03 / 1; border-width:7px; border-radius:17px; }
   .viewport { min-height:54vh; }
 }
+
+
+/* Destaque visual do modo de remoção */
+.viewport.remove-mode .placed {
+  cursor: pointer;
+}
+
+.viewport.remove-mode .placed .sprite {
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px #c84035);
+}
+
+.viewport.remove-mode .placed:hover .sprite {
+  transform: scale(1.08);
+}
