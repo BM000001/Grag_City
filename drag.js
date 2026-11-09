@@ -25,7 +25,7 @@
     hint: byId('hint'), message: byId('message'), saveStatus: byId('saveStatus'), removeMode: byId('removeMode'),
     dialog: byId('buildingDialog'), form: byId('buildingForm'), name: byId('buildingName'),
     status: byId('buildingStatus'), notes: byId('buildingNotes'), location: byId('dialogLocation'),
-    cityInput: byId('cityInput'), weatherResult: byId('weatherResult'), weatherButton: byId('weatherButton'),
+    cityInput: byId('cityInput'), weatherResult: byId('weatherResult'), weatherButton: byId('weatherButton'), weatherAdvice: byId('weatherAdvice'),
     zoomLabel: byId('zoomLabel'), map: byId('map'), islandShadow: document.querySelector('.island-shadow')
   };
   let city = readState();
@@ -377,7 +377,7 @@
     ui.weatherButton.disabled = true;
     ui.weatherResult.textContent = 'Consultando o clima…';
     try {
-      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=pt&format=json`;
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=pt&countryCode=BR&format=json`;
       const geoResponse = await fetch(geoUrl);
       if (!geoResponse.ok) throw new Error('geocoding');
       const geo = await geoResponse.json();
@@ -407,6 +407,18 @@
     const time = Number.isNaN(updated.getTime()) ? '' : ` · ${updated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     ui.cityInput.value = weather.name.split(',')[0];
     ui.weatherResult.textContent = `${weather.name}: ${weather.temperature} °C · chuva ${weather.precipitation} mm · vento ${weather.windSpeed} km/h${time}`;
+    const temperature = Number(weather.temperature) || 0;
+    const precipitation = Number(weather.precipitation) || 0;
+    const windSpeed = Number(weather.windSpeed) || 0;
+    if (windSpeed >= 30) {
+      ui.weatherAdvice.textContent = 'Ventos fortes: mantenha ruas acessíveis e priorize os serviços de emergência.';
+    } else if (precipitation >= 1) {
+      ui.weatherAdvice.textContent = 'Chuva: planeje acessos por ruas e mantenha hospital e bombeiros conectados.';
+    } else if (temperature >= 28) {
+      ui.weatherAdvice.textContent = 'Calor ou tempo seco: priorize árvores e parques para ampliar as áreas de sombra.';
+    } else {
+      ui.weatherAdvice.textContent = 'Clima ameno: equilibre moradias, serviços essenciais e áreas verdes.';
+    }
   }
 
   ui.catalog.addEventListener('click', (event) => {
