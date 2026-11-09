@@ -1155,7 +1155,6 @@ a:focus-visible {
 
 .map-controls,
 .legend {
-  position: relative;
   z-index: 6;
 }
 
